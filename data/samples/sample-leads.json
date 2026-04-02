@@ -1,0 +1,130 @@
+[
+  {
+    "id": "lead_demo_shopify",
+    "source": "csv_import",
+    "segment": "shopify",
+    "status": "new",
+    "company": {
+      "name": "GlowBean Skincare",
+      "website": "glowbean.co",
+      "platform": "Shopify",
+      "platformIndicators": ["Shopify Plus"],
+      "industry": "Beauty & Skincare",
+      "niche": "Clean beauty DTC",
+      "sizeEstimate": "5-15",
+      "products": ["serums", "moisturizers", "cleansers", "subscription boxes"],
+      "techStack": ["Shopify Plus", "Klaviyo", "ShipStation", "Gorgias", "Recharge"]
+    },
+    "contact": {
+      "fullName": "Maya Chen",
+      "firstName": "Maya",
+      "lastName": "Chen",
+      "role": "Founder & CEO",
+      "email": "maya@glowbean.co",
+      "linkedinUrl": "https://linkedin.com/in/mayachen",
+      "xUrl": "https://x.com/mayaglowbean"
+    },
+    "signals": {
+      "hiringSignals": ["Hiring fulfillment coordinator", "Hiring customer support lead"],
+      "recentAnnouncements": ["Launched subscription box program", "Featured in clean beauty podcast"],
+      "customerExperienceClues": ["Uses Gorgias for support", "Growing ticket volume"],
+      "operationalComplexityClues": ["120+ SKUs", "Multi-channel (Shopify + Amazon)", "Subscription model adds recurring ops"],
+      "multiChannelPresence": ["Shopify store", "Amazon"],
+      "teamStructureClues": ["Small team (5-15)", "Founder-led"],
+      "fragmentedTooling": ["Klaviyo", "ShipStation", "Gorgias", "Recharge", "5+ Shopify apps"],
+      "growthIndicators": ["Subscription launch", "Hiring new roles"],
+      "painPointClues": ["15 hours/week on manual order routing", "Disconnected app stack"],
+      "rawNotes": "Runs Shopify Plus store with 120+ SKUs. Sells on Amazon and their own site. Recently launched subscription boxes. Hiring a fulfillment coordinator and customer support lead. Uses Klaviyo, ShipStation, Gorgias, and 5 other Shopify apps. Mentioned in a podcast they spend 15 hours/week on manual order routing."
+    },
+    "painPoints": [],
+    "outreachDrafts": [],
+    "tags": ["dtc", "beauty", "subscription"],
+    "createdAt": "2026-04-02T00:00:00.000Z",
+    "updatedAt": "2026-04-02T00:00:00.000Z"
+  },
+  {
+    "id": "lead_demo_ecommerce",
+    "source": "csv_import",
+    "segment": "ecommerce",
+    "status": "new",
+    "company": {
+      "name": "Outdoor Vault",
+      "website": "outdoorvault.com",
+      "platform": "Shopify + Amazon",
+      "platformIndicators": ["Shopify", "Amazon"],
+      "industry": "Outdoor & Recreation",
+      "niche": "Camping and hiking gear",
+      "sizeEstimate": "20-50",
+      "products": ["tents", "backpacks", "sleeping bags", "camp stoves", "hiking gear"],
+      "techStack": ["Shopify", "Amazon Seller Central", "Google Sheets"]
+    },
+    "contact": {
+      "fullName": "James Kerrigan",
+      "firstName": "James",
+      "lastName": "Kerrigan",
+      "role": "Head of Operations",
+      "email": "james@outdoorvault.com",
+      "linkedinUrl": "https://linkedin.com/in/jkerrigan",
+      "xUrl": "https://x.com/outdoorvault"
+    },
+    "signals": {
+      "hiringSignals": ["Hiring ops manager", "Hiring 2 CS agents", "Hiring data analyst"],
+      "recentAnnouncements": ["Raised $4M Series A", "Expanding to Canada"],
+      "customerExperienceClues": ["Growing support team needs"],
+      "operationalComplexityClues": ["3 warehouses", "Multi-channel inventory management", "Evaluating ERP systems", "International expansion"],
+      "multiChannelPresence": ["Shopify", "Amazon", "REI marketplace"],
+      "teamStructureClues": ["20-50 employees", "Growing fast"],
+      "fragmentedTooling": ["Spreadsheets for inventory reconciliation", "No ERP yet"],
+      "growthIndicators": ["$4M Series A", "Canada expansion", "Rapid hiring"],
+      "painPointClues": ["Spreadsheet-based inventory reconciliation", "No ERP system", "Manual processes across channels"],
+      "rawNotes": "Multi-channel ecommerce brand selling on Shopify, Amazon, and REI marketplace. 3 warehouses across the US. Just raised a $4M Series A. Expanding to Canada. Team is growing fast. Currently using spreadsheets for inventory reconciliation across channels. Evaluating ERP systems."
+    },
+    "painPoints": [],
+    "outreachDrafts": [],
+    "tags": ["outdoor", "multi-channel", "funded"],
+    "createdAt": "2026-04-02T00:00:00.000Z",
+    "updatedAt": "2026-04-02T00:00:00.000Z"
+  },
+  {
+    "id": "lead_demo_enterprise",
+    "source": "csv_import",
+    "segment": "enterprise",
+    "status": "new",
+    "company": {
+      "name": "Meridian Logistics Group",
+      "website": "meridianlogistics.com",
+      "platform": "",
+      "platformIndicators": [],
+      "industry": "Supply Chain & Logistics",
+      "niche": "3PL and freight",
+      "sizeEstimate": "500-1000",
+      "products": ["3PL fulfillment", "freight brokerage", "warehousing"],
+      "techStack": ["Legacy WMS"]
+    },
+    "contact": {
+      "fullName": "Patricia Okafor",
+      "firstName": "Patricia",
+      "lastName": "Okafor",
+      "role": "VP of Operations",
+      "email": "p.okafor@meridianlogistics.com",
+      "linkedinUrl": "https://linkedin.com/in/patriciaokafor"
+    },
+    "signals": {
+      "hiringSignals": ["Hiring CTO", "Hiring Head of Automation"],
+      "recentAnnouncements": ["Acquired regional 3PL provider", "Digital transformation initiative"],
+      "customerExperienceClues": ["Handles fulfillment for 200+ ecommerce brands"],
+      "operationalComplexityClues": ["12 warehouse locations", "200+ client brands", "Legacy WMS (8 years old)", "Carrier rate shopping manual", "Client reporting manual", "Exception handling manual"],
+      "multiChannelPresence": [],
+      "teamStructureClues": ["500-1000 employees", "Multiple departments"],
+      "fragmentedTooling": ["Legacy WMS", "Manual carrier rate shopping", "Manual client reporting"],
+      "growthIndicators": ["Recent acquisition", "Digital transformation initiative", "Hiring senior tech leadership"],
+      "painPointClues": ["8-year-old WMS", "Manual carrier rate shopping", "Manual client reporting", "Manual exception handling", "Post-acquisition system integration needs"],
+      "rawNotes": "Large 3PL provider with 12 warehouse locations. Handles fulfillment for 200+ ecommerce brands. Running legacy WMS that's 8 years old. Digital transformation initiative underway — hiring a CTO and Head of Automation. Manual processes in carrier rate shopping, client reporting, and exception handling. Recently acquired a smaller regional 3PL."
+    },
+    "painPoints": [],
+    "outreachDrafts": [],
+    "tags": ["logistics", "3pl", "enterprise", "digital-transformation"],
+    "createdAt": "2026-04-02T00:00:00.000Z",
+    "updatedAt": "2026-04-02T00:00:00.000Z"
+  }
+]
