@@ -1,0 +1,40 @@
+{
+  "name": "outreach-agent",
+  "version": "0.1.0",
+  "description": "Compliant lead discovery, qualification, and outreach drafting agent",
+  "type": "module",
+  "main": "dist/cli.js",
+  "bin": {
+    "outreach": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/cli.ts",
+    "ingest": "tsx src/cli.ts ingest",
+    "enrich": "tsx src/cli.ts enrich",
+    "score": "tsx src/cli.ts score",
+    "draft": "tsx src/cli.ts draft",
+    "review": "tsx src/cli.ts review",
+    "pipeline": "tsx src/cli.ts pipeline",
+    "export": "tsx src/cli.ts export",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.7.0",
+    "chalk": "^5.3.0",
+    "commander": "^12.1.0",
+    "csv-parse": "^5.6.0",
+    "csv-stringify": "^6.5.2",
+    "dotenv": "^16.4.7",
+    "nanoid": "^5.0.9",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}
