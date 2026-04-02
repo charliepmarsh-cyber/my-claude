@@ -1,9 +1,12 @@
 import { RateLimiter } from "./rate-limiter.js";
 import { log } from "./logger.js";
+import { generateMockResponse } from "./mock-llm.js";
 
 const rateLimiter = new RateLimiter(
   parseInt(process.env.LLM_RATE_LIMIT || "20", 10)
 );
+
+let mockWarningShown = false;
 
 interface LlmRequest {
   system: string;
@@ -21,13 +24,21 @@ interface LlmResponse {
  * Falls back to a structured mock when ANTHROPIC_API_KEY is not set.
  */
 export async function callLlm(req: LlmRequest): Promise<LlmResponse> {
-  await rateLimiter.acquire();
-
   const apiKey = process.env.ANTHROPIC_API_KEY;
+
+  // Mock mode: skip rate limiting entirely for instant responses
   if (!apiKey) {
-    log.warn("No ANTHROPIC_API_KEY set — using mock LLM response");
-    return mockLlmResponse(req);
+    if (!mockWarningShown) {
+      log.warn("No ANTHROPIC_API_KEY set — using smart mock LLM (set key for real responses)");
+      mockWarningShown = true;
+    }
+    return {
+      text: generateMockResponse(req.system, req.prompt),
+    };
   }
+
+  // Real API: apply rate limiting
+  await rateLimiter.acquire();
 
   const body = {
     model: "claude-sonnet-4-20250514",
@@ -86,20 +97,3 @@ export async function callLlmJson<T>(req: LlmRequest): Promise<T> {
   }
 }
 
-/**
- * Mock LLM for development/testing without API key.
- */
-function mockLlmResponse(req: LlmRequest): LlmResponse {
-  // If the prompt asks for JSON, return a plausible structure
-  if (req.system.includes("JSON")) {
-    return {
-      text: JSON.stringify({
-        _mock: true,
-        _note: "Set ANTHROPIC_API_KEY for real LLM responses",
-      }),
-    };
-  }
-  return {
-    text: "[Mock LLM response — set ANTHROPIC_API_KEY for real output]",
-  };
-}

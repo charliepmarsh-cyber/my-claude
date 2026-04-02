@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Lead",
+  "description": "A lead in the outreach automation pipeline",
+  "type": "object",
+  "required": ["id", "source", "segment", "status", "company", "contact", "signals", "createdAt", "updatedAt"],
+  "properties": {
+    "id": { "type": "string", "description": "Unique lead identifier (e.g., lead_abc123)" },
+    "source": {
+      "type": "string",
+      "enum": ["csv_import", "json_import", "manual", "shopify_app_store", "linkedin_search", "job_board", "directory", "referral", "community", "web_search", "crm_import", "n8n_webhook"]
+    },
+    "segment": {
+      "type": "string",
+      "enum": ["shopify", "ecommerce", "enterprise"]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["new", "enriching", "enriched", "scored", "drafting", "drafted", "review_pending", "approved", "edited", "rejected", "snoozed", "not_a_fit", "sent", "replied", "follow_up_due", "closed"]
+    },
+    "company": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string" },
+        "website": { "type": "string" },
+        "platform": { "type": "string", "description": "e.g., Shopify, WooCommerce, BigCommerce" },
+        "platformIndicators": { "type": "array", "items": { "type": "string" } },
+        "industry": { "type": "string" },
+        "niche": { "type": "string" },
+        "sizeEstimate": { "type": "string", "description": "e.g., 1-10, 11-50, 51-200" },
+        "revenueEstimate": { "type": "string" },
+        "description": { "type": "string" },
+        "products": { "type": "array", "items": { "type": "string" } },
+        "foundedYear": { "type": "integer" },
+        "headquarters": { "type": "string" },
+        "techStack": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "contact": {
+      "type": "object",
+      "properties": {
+        "firstName": { "type": "string" },
+        "lastName": { "type": "string" },
+        "fullName": { "type": "string" },
+        "role": { "type": "string" },
+        "title": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "linkedinUrl": { "type": "string", "format": "uri" },
+        "xUrl": { "type": "string", "format": "uri" },
+        "phone": { "type": "string" }
+      }
+    },
+    "signals": {
+      "type": "object",
+      "properties": {
+        "hiringSignals": { "type": "array", "items": { "type": "string" } },
+        "recentAnnouncements": { "type": "array", "items": { "type": "string" } },
+        "customerExperienceClues": { "type": "array", "items": { "type": "string" } },
+        "operationalComplexityClues": { "type": "array", "items": { "type": "string" } },
+        "multiChannelPresence": { "type": "array", "items": { "type": "string" } },
+        "teamStructureClues": { "type": "array", "items": { "type": "string" } },
+        "fragmentedTooling": { "type": "array", "items": { "type": "string" } },
+        "growthIndicators": { "type": "array", "items": { "type": "string" } },
+        "painPointClues": { "type": "array", "items": { "type": "string" } },
+        "storefrontMaturity": { "type": "string", "enum": ["early", "growing", "mature", "enterprise"] },
+        "rawNotes": { "type": "string" }
+      }
+    },
+    "score": {
+      "type": "object",
+      "properties": {
+        "fitScore": { "type": "number", "minimum": 0, "maximum": 100 },
+        "fitFactors": { "type": "array", "items": { "type": "string" } },
+        "opportunityScore": { "type": "number", "minimum": 0, "maximum": 100 },
+        "opportunityFactors": { "type": "array", "items": { "type": "string" } },
+        "urgencyScore": { "type": "number", "minimum": 0, "maximum": 100 },
+        "urgencyFactors": { "type": "array", "items": { "type": "string" } },
+        "personalizationDepth": { "type": "number", "minimum": 0, "maximum": 100 },
+        "personalizationFactors": { "type": "array", "items": { "type": "string" } },
+        "finalScore": { "type": "number", "minimum": 0, "maximum": 100 },
+        "tier": { "type": "string", "enum": ["A", "B", "C", "D"] },
+        "explanation": { "type": "string" },
+        "redFlags": { "type": "array", "items": { "type": "string" } },
+        "excluded": { "type": "boolean" },
+        "exclusionReason": { "type": "string" }
+      }
+    },
+    "painPoints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["hypothesis", "confidence", "automationAngle", "roiAngle"],
+        "properties": {
+          "hypothesis": { "type": "string" },
+          "confidence": { "type": "string", "enum": ["high", "medium", "low"] },
+          "supportingSignals": { "type": "array", "items": { "type": "string" } },
+          "automationAngle": { "type": "string" },
+          "roiAngle": { "type": "string" },
+          "relevantUseCases": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "outreachDrafts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["channel", "messageType", "body", "createdAt"],
+        "properties": {
+          "channel": { "type": "string", "enum": ["linkedin", "x", "email"] },
+          "messageType": {
+            "type": "string",
+            "enum": ["linkedin_connection_note", "linkedin_first_message", "x_engagement_idea", "x_dm", "email_first_touch", "email_follow_up_1", "email_follow_up_2"]
+          },
+          "subject": { "type": "string" },
+          "body": { "type": "string" },
+          "personalizationSnippet": { "type": "string" },
+          "signalUsed": { "type": "string" },
+          "qualityScore": { "type": "number", "minimum": 0, "maximum": 100 },
+          "qualityIssues": { "type": "array", "items": { "type": "string" } },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      }
+    },
+    "personalizationNotes": { "type": "string" },
+    "nextAction": { "type": "string" },
+    "reviewNotes": { "type": "string" },
+    "tags": { "type": "array", "items": { "type": "string" } },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "updatedAt": { "type": "string", "format": "date-time" },
+    "enrichedAt": { "type": "string", "format": "date-time" },
+    "scoredAt": { "type": "string", "format": "date-time" },
+    "draftedAt": { "type": "string", "format": "date-time" },
+    "reviewedAt": { "type": "string", "format": "date-time" },
+    "sentAt": { "type": "string", "format": "date-time" }
+  }
+}

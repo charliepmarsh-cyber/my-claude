@@ -2,6 +2,7 @@ import type { Lead, PipelineConfig, OutreachChannel } from "../types/index.js";
 import { enrichLead } from "../enrichment/enricher.js";
 import { scoreLead } from "../scoring/scorer.js";
 import { draftOutreach } from "../outreach/drafter.js";
+import { generateFollowUps } from "../outreach/follow-up.js";
 import { validateLead, validateDraft } from "../quality/validator.js";
 import { queueForReview } from "../review/reviewer.js";
 import { deduplicateLeads } from "../lib/dedup.js";
@@ -127,6 +128,18 @@ export async function runPipeline(
         processed = await draftOutreach(processed, cfg.channels as OutreachChannel[]);
         result.drafted++;
         logAuditSafe(processed.id, "drafted", `${processed.outreachDrafts.length} drafts`);
+
+        // Step 5b: Generate follow-up emails if email channel is included
+        if (cfg.channels.includes("email")) {
+          const followUps = await generateFollowUps(processed, 2);
+          processed = {
+            ...processed,
+            outreachDrafts: [...processed.outreachDrafts, ...followUps],
+          };
+          if (followUps.length > 0) {
+            logAuditSafe(processed.id, "follow_ups_generated", `${followUps.length} follow-ups`);
+          }
+        }
 
         // Validate drafts
         for (const draft of processed.outreachDrafts) {

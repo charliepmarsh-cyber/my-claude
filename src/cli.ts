@@ -11,7 +11,8 @@ import { runPipeline } from "./pipelines/index.js";
 import { scoreLead } from "./scoring/index.js";
 import { enrichLead } from "./enrichment/index.js";
 import { draftOutreach } from "./outreach/index.js";
-import { applyReview, filterReviewQueue, reviewQueueStats } from "./review/index.js";
+import { applyReview, filterReviewQueue, reviewQueueStats, interactiveReview } from "./review/index.js";
+import { generateFollowUps } from "./outreach/index.js";
 import { validateLead, validateDraft } from "./quality/index.js";
 import { log, setLogLevel } from "./lib/index.js";
 import type { Lead } from "./types/index.js";
@@ -163,17 +164,54 @@ program
     log.success(`Drafted outreach for ${leads.length} leads`);
   });
 
+// ── Follow-up ───────────────────────────────────────────────────
+
+program
+  .command("follow-up")
+  .description("Generate follow-up email sequences for drafted leads")
+  .action(async () => {
+    const leads = getAllLeads().filter(
+      (l) => l.status === "drafted" || l.status === "review_pending"
+    );
+    const needsFollowUp = leads.filter(
+      (l) => !l.outreachDrafts.some((d) => d.messageType === "email_follow_up_1")
+    );
+    if (needsFollowUp.length === 0) {
+      log.info("No leads need follow-up sequences");
+      return;
+    }
+    log.info(`Generating follow-ups for ${needsFollowUp.length} leads...`);
+    for (const lead of needsFollowUp) {
+      const followUps = await generateFollowUps(lead, 2);
+      const updated = {
+        ...lead,
+        outreachDrafts: [...lead.outreachDrafts, ...followUps],
+        updatedAt: new Date().toISOString(),
+      };
+      saveLead(updated);
+      log.success(`${lead.company.name}: ${followUps.length} follow-ups generated`);
+    }
+  });
+
 // ── Review ──────────────────────────────────────────────────────
 
 program
   .command("review")
   .description("Show review queue and stats")
+  .option("-i, --interactive", "Interactive review mode")
   .option("--approve <id>", "Approve a lead")
   .option("--reject <id>", "Reject a lead")
   .option("--snooze <id>", "Snooze a lead")
   .option("--not-a-fit <id>", "Mark as not a fit")
   .option("--notes <text>", "Add review notes")
-  .action((opts) => {
+  .action(async (opts) => {
+    // Interactive mode
+    if (opts.interactive) {
+      const allLeads = getAllLeads();
+      await interactiveReview(allLeads);
+      return;
+    }
+
     // Handle review actions
     if (opts.approve || opts.reject || opts.snooze || opts.notAFit) {
       const id = opts.approve || opts.reject || opts.snooze || opts.notAFit;
