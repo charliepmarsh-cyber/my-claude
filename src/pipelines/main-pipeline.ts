@@ -6,6 +6,7 @@ import { generateFollowUps } from "../outreach/follow-up.js";
 import { validateLead, validateDraft } from "../quality/validator.js";
 import { queueForReview } from "../review/reviewer.js";
 import { deduplicateLeads } from "../lib/dedup.js";
+import { LlmAuthError } from "../lib/llm.js";
 import { saveLead, logAudit } from "../storage/database.js";
 import { log } from "../lib/logger.js";
 
@@ -79,6 +80,17 @@ export async function runPipeline(
       // Step 3: Enrich
       if (cfg.enrichmentEnabled) {
         processed = await enrichLead(processed);
+
+        // If enrichment failed, the lead stays status "new" — skip scoring/drafting
+        if (processed.status === "new") {
+          log.warn(`Enrichment failed for ${processed.company.name} — skipping scoring/drafting (will retry on next run)`);
+          result.errors++;
+          logAuditSafe(processed.id, "enrichment_failed");
+          if (!cfg.dryRun) saveLead(processed);
+          result.leads.push(processed);
+          continue;
+        }
+
         result.enriched++;
         logAuditSafe(processed.id, "enriched");
       }
@@ -160,6 +172,15 @@ export async function runPipeline(
       if (!cfg.dryRun) saveLead(processed);
       result.leads.push(processed);
     } catch (err) {
+      // Auth errors are fatal — stop the entire pipeline immediately
+      if (err instanceof LlmAuthError) {
+        log.error(`FATAL: ${(err as Error).message}`);
+        log.error("Pipeline halted. Fix your API key and re-run.");
+        result.errors++;
+        result.leads.push(lead);
+        break; // stop processing remaining leads
+      }
+
       log.error(`Pipeline error for ${lead.company.name}: ${(err as Error).message}`);
       result.errors++;
       result.leads.push(lead);

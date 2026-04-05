@@ -1,5 +1,5 @@
 import type { Lead, PublicSignals, PainPointHypothesis } from "../types/index.js";
-import { callLlmJson } from "../lib/llm.js";
+import { callLlmJson, LlmAuthError } from "../lib/llm.js";
 import { log } from "../lib/logger.js";
 import {
   ENRICHMENT_SYSTEM_PROMPT,
@@ -110,8 +110,25 @@ export async function enrichLead(lead: Lead): Promise<Lead> {
       updatedAt: now,
     };
   } catch (err) {
+    // Auth errors are fatal — bubble up to stop the pipeline
+    if (err instanceof LlmAuthError) {
+      throw err;
+    }
+
+    // Other LLM errors: mark the lead as failed enrichment, NOT as "enriched"
     log.error(`Failed to enrich ${lead.company.name}: ${(err as Error).message}`);
-    return { ...lead, status: "enriched", updatedAt: new Date().toISOString() };
+    return {
+      ...lead,
+      status: "new" as const, // keep as "new" so it can be retried later
+      signals: {
+        ...lead.signals,
+        rawNotes: [
+          lead.signals.rawNotes || "",
+          `[ENRICHMENT_FAILED] ${(err as Error).message}`,
+        ].filter(Boolean).join("\n"),
+      },
+      updatedAt: new Date().toISOString(),
+    };
   }
 }
 

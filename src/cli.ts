@@ -15,7 +15,7 @@ import { draftOutreach } from "./outreach/index.js";
 import { applyReview, filterReviewQueue, reviewQueueStats, interactiveReview } from "./review/index.js";
 import { generateFollowUps } from "./outreach/index.js";
 import { validateLead, validateDraft } from "./quality/index.js";
-import { log, setLogLevel } from "./lib/index.js";
+import { log, setLogLevel, validateApiKey } from "./lib/index.js";
 import type { Lead } from "./types/index.js";
 import type { ReviewAction } from "./review/index.js";
 
@@ -30,6 +30,24 @@ program
   .hook("preAction", (cmd) => {
     if (cmd.opts().verbose) setLogLevel("debug");
     initDb(cmd.opts().db);
+
+    // Validate API key on commands that need it
+    const llmCommands = ["pipeline", "enrich", "draft", "follow-up"];
+    const cmdName = cmd.args?.[0] || cmd.name();
+    if (llmCommands.includes(cmdName)) {
+      try {
+        const { mode } = validateApiKey();
+        if (mode === "mock") {
+          log.warn("No ANTHROPIC_API_KEY configured — will use mock LLM responses.");
+          log.warn("Set your key in .env for real Claude-powered enrichment and drafting.");
+        } else {
+          log.debug("API key validated (live mode)");
+        }
+      } catch (err) {
+        log.error((err as Error).message);
+        process.exit(1);
+      }
+    }
   });
 
 // ── Ingest ──────────────────────────────────────────────────────
