@@ -69,7 +69,7 @@ export function validateLead(lead: Lead): ValidationResult {
     issues.push({ field: "company.name", severity: "error", message: "Missing company name", rule: "required_field" });
   }
   if (!lead.contact.email && !lead.contact.linkedinUrl) {
-    issues.push({ field: "contact", severity: "error", message: "No contact method (email or LinkedIn)", rule: "required_contact" });
+    issues.push({ field: "contact", severity: "warning", message: "No contact method (email or LinkedIn) — outreach drafting will be skipped", rule: "required_contact" });
   }
   if (!lead.contact.fullName && !lead.contact.firstName) {
     issues.push({ field: "contact.name", severity: "warning", message: "No contact name — outreach will be less personal", rule: "recommended_field" });

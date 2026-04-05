@@ -118,17 +118,24 @@ export async function runPipeline(
           continue;
         }
 
-        // Skip low-score leads
-        if (cfg.excludeTierD && score.tier === "D") {
-          log.info(`Skipping ${processed.company.name} (Tier D, score ${score.finalScore})`);
-          result.excluded++;
-          if (!cfg.dryRun) saveLead(processed);
-          result.leads.push(processed);
-          continue;
-        }
-
-        if (score.finalScore < cfg.minScoreForDrafting) {
-          log.info(`Skipping drafting for ${processed.company.name} (score ${score.finalScore} < ${cfg.minScoreForDrafting})`);
+        // Low-score leads: skip full drafting but draft LinkedIn-only if we have a LinkedIn URL
+        if ((cfg.excludeTierD && score.tier === "D") || score.finalScore < cfg.minScoreForDrafting) {
+          const hasLinkedIn = !!processed.contact.linkedinUrl;
+          if (hasLinkedIn && cfg.draftingEnabled && cfg.channels.includes("linkedin")) {
+            log.info(`${processed.company.name} (${score.tier}, score ${score.finalScore}) — low score but has LinkedIn, drafting connection note only`);
+            processed = await draftOutreach(processed, ["linkedin"]);
+            result.drafted++;
+            for (const draft of processed.outreachDrafts) {
+              const dv = validateDraft(draft);
+              draft.qualityScore = dv.overallScore;
+              draft.qualityIssues = dv.issues.filter(i => i.severity !== "info").map(i => `[${i.severity}] ${i.message}`);
+            }
+            processed = queueForReview(processed);
+            result.queued++;
+          } else {
+            log.info(`Skipping ${processed.company.name} (${score.tier}, score ${score.finalScore})`);
+            result.excluded++;
+          }
           if (!cfg.dryRun) saveLead(processed);
           result.leads.push(processed);
           continue;
