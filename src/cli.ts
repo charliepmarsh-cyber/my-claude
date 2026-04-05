@@ -15,7 +15,8 @@ import { draftOutreach } from "./outreach/index.js";
 import { applyReview, filterReviewQueue, reviewQueueStats, interactiveReview } from "./review/index.js";
 import { generateFollowUps } from "./outreach/index.js";
 import { validateLead, validateDraft } from "./quality/index.js";
-import { log, setLogLevel, validateApiKey } from "./lib/index.js";
+import { log, setLogLevel, validateApiKey, checkConnectorKeys } from "./lib/index.js";
+import { runDiscovery, validateAllConnectors } from "./pipelines/index.js";
 import type { Lead } from "./types/index.js";
 import type { ReviewAction } from "./review/index.js";
 
@@ -325,6 +326,95 @@ program
     for (const [s, c] of Object.entries(segments)) console.log(`  ${s}: ${c}`);
     console.log(chalk.bold("\nBy Tier:"));
     for (const [t, c] of Object.entries(tiers)) console.log(`  ${t}: ${c}`);
+  });
+
+// ── Discover ────────────────────────────────────────────────────
+
+program
+  .command("discover")
+  .description("Discover new leads via external connectors (Apollo, BuiltWith, job boards)")
+  .requiredOption("--segment <segment>", "Target segment: shopify, ecommerce, or enterprise")
+  .option("--max <n>", "Max leads per source", process.env.DISCOVERY_DEFAULT_MAX || "25")
+  .option("--source <sources>", "Comma-separated connector keys (apollo,builtwith,jobsignals)")
+  .option("--dry-run", "Preview results without saving to storage")
+  .option("--no-pipeline", "Skip running enrichment pipeline on discovered leads")
+  .option("--validate", "Validate all connector API keys and exit")
+  .option("--filters <json>", "JSON string of additional filters")
+  .action(async (opts) => {
+    // Validate-only mode
+    if (opts.validate) {
+      console.log(chalk.bold("\nValidating discovery connectors...\n"));
+      const results = await validateAllConnectors();
+      for (const [key, ok] of Object.entries(results)) {
+        console.log(`  ${ok ? chalk.green("✓") : chalk.red("✗")} ${key}`);
+      }
+      const allOk = Object.values(results).every(Boolean);
+      console.log(allOk ? chalk.green("\nAll connectors ready.") : chalk.yellow("\nSome connectors unavailable (check API keys)."));
+      return;
+    }
+
+    const segment = opts.segment as "shopify" | "ecommerce" | "enterprise";
+    if (!["shopify", "ecommerce", "enterprise"].includes(segment)) {
+      log.error(`Invalid segment: "${segment}". Use: shopify, ecommerce, or enterprise`);
+      process.exit(1);
+    }
+
+    const sources = opts.source ? opts.source.split(",").map((s: string) => s.trim()) : undefined;
+
+    // Check connector keys (fail hard only if a specific source was requested)
+    try {
+      checkConnectorKeys(sources);
+    } catch (err) {
+      log.error((err as Error).message);
+      process.exit(1);
+    }
+
+    const filters = opts.filters ? JSON.parse(opts.filters) : undefined;
+
+    const result = await runDiscovery({
+      segment,
+      maxLeads: parseInt(opts.max, 10),
+      sources,
+      filters,
+      dryRun: !!opts.dryRun,
+      runPipelineAfter: opts.pipeline !== false,
+    });
+
+    // Print results
+    console.log(chalk.bold("\nDiscovery Results:"));
+    console.log(`  Total found:     ${result.totalFound}`);
+    console.log(`  Duplicates:      ${result.totalDeduped}`);
+    console.log(`  Already exists:  ${result.totalExisting}`);
+    console.log(`  New leads:       ${result.totalNew}`);
+
+    if (result.stats.length > 0) {
+      console.log(chalk.bold("\nBy Source:"));
+      for (const stat of result.stats) {
+        const errStr = stat.errors.length > 0 ? chalk.red(` (${stat.errors.length} errors)`) : "";
+        console.log(`  ${stat.source}: ${stat.found} found, ${stat.passedToPipeline} new${errStr}`);
+      }
+    }
+
+    if (result.pipelineResult) {
+      console.log(chalk.bold("\nPipeline Results:"));
+      console.log(`  Enriched: ${result.pipelineResult.enriched}`);
+      console.log(`  Scored:   ${result.pipelineResult.scored}`);
+      console.log(`  Drafted:  ${result.pipelineResult.drafted}`);
+      console.log(`  Queued:   ${result.pipelineResult.queued}`);
+    }
+
+    if (opts.dryRun) {
+      console.log(chalk.yellow("\n  (Dry run — nothing saved)"));
+      if (result.newLeads.length > 0) {
+        console.log(chalk.bold("\n  Preview of discovered leads:"));
+        for (const lead of result.newLeads.slice(0, 10)) {
+          console.log(`    - ${lead.company.name} (${lead.segment}) — ${lead.contact.fullName || "no contact"} — ${lead.source}`);
+        }
+        if (result.newLeads.length > 10) {
+          console.log(chalk.gray(`    ... and ${result.newLeads.length - 10} more`));
+        }
+      }
+    }
   });
 
 // ── Parse and run ───────────────────────────────────────────────

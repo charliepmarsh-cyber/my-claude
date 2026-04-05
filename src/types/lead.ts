@@ -52,6 +52,9 @@ export const LeadSource = z.enum([
   "web_search",
   "crm_import",
   "n8n_webhook",
+  "apollo",
+  "builtwith",
+  "hunter",
 ]);
 export type LeadSource = z.infer<typeof LeadSource>;
 
@@ -185,6 +188,10 @@ export const CsvLeadRow = z.object({
   segment: z.string().optional(),
   source: z.string().optional(),
   notes: z.string().optional(),
+  // Enrichment hint columns (optional, pre-populate personalization)
+  apollo_id: z.string().optional(),
+  x_handle: z.string().optional(),
+  manual_notes: z.string().optional(),
 }).passthrough();
 export type CsvLeadRow = z.infer<typeof CsvLeadRow>;
 
