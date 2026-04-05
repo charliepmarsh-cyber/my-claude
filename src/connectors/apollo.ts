@@ -82,8 +82,9 @@ export const apolloConnector: LeadSourceConnector = {
     try {
       // Lightweight validation: search with limit 1
       await http.post<ApolloSearchResponse>(
-        `${APOLLO_BASE}/v1/mixed_people/search`,
-        { api_key: key, page: 1, per_page: 1, person_titles: ["ceo"] },
+        `${APOLLO_BASE}/v1/mixed_people/api_search`,
+        { page: 1, per_page: 1, person_titles: ["ceo"] },
+        { "X-Api-Key": key },
       );
       log.success("[Apollo] API key validated");
       return true;
@@ -109,7 +110,6 @@ export const apolloConnector: LeadSourceConnector = {
       log.info(`[Apollo] Searching page ${page} for ${params.segment} leads...`);
 
       const body: Record<string, unknown> = {
-        api_key: key,
         page,
         per_page: perPage,
         person_titles: titles,
@@ -124,8 +124,9 @@ export const apolloConnector: LeadSourceConnector = {
 
       try {
         const res = await http.post<ApolloSearchResponse>(
-          `${APOLLO_BASE}/v1/mixed_people/search`,
+          `${APOLLO_BASE}/v1/mixed_people/api_search`,
           body,
+          { "X-Api-Key": key },
         );
 
         const people = res.people || [];

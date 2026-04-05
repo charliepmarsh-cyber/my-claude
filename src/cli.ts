@@ -333,7 +333,7 @@ program
 program
   .command("discover")
   .description("Discover new leads via external connectors (Apollo, BuiltWith, job boards)")
-  .requiredOption("--segment <segment>", "Target segment: shopify, ecommerce, or enterprise")
+  .option("--segment <segment>", "Target segment: shopify, ecommerce, or enterprise")
   .option("--max <n>", "Max leads per source", process.env.DISCOVERY_DEFAULT_MAX || "25")
   .option("--source <sources>", "Comma-separated connector keys (apollo,builtwith,jobsignals)")
   .option("--dry-run", "Preview results without saving to storage")
@@ -353,6 +353,10 @@ program
       return;
     }
 
+    if (!opts.segment) {
+      log.error("--segment is required. Use: shopify, ecommerce, or enterprise");
+      process.exit(1);
+    }
     const segment = opts.segment as "shopify" | "ecommerce" | "enterprise";
     if (!["shopify", "ecommerce", "enterprise"].includes(segment)) {
       log.error(`Invalid segment: "${segment}". Use: shopify, ecommerce, or enterprise`);
