@@ -421,6 +421,20 @@ program
     }
   });
 
+// ── Serve (webhook server for n8n) ──────────────────────────────
+
+program
+  .command("serve")
+  .description("Start webhook server for n8n integration")
+  .option("--port <port>", "Server port", process.env.WEBHOOK_PORT || "3847")
+  .action(async (opts) => {
+    const { startServer } = await import("./server/serve.js");
+    await startServer({
+      port: parseInt(opts.port, 10),
+      dbPath: program.opts().db,
+    });
+  });
+
 // ── Parse and run ───────────────────────────────────────────────
 
 function printLeadSummary(leads: Lead[]) {

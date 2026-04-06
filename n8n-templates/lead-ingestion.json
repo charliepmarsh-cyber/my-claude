@@ -1,0 +1,66 @@
+{
+  "name": "CortexCart — Lead Ingestion Webhook",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ingest-lead",
+        "responseMode": "responseNode"
+      },
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            { "name": "companyName", "value": "={{$json.body.company_name || $json.body.companyName}}" },
+            { "name": "website", "value": "={{$json.body.website || ''}}" },
+            { "name": "contactName", "value": "={{$json.body.contact_name || $json.body.contactName || ''}}" },
+            { "name": "contactEmail", "value": "={{$json.body.contact_email || $json.body.contactEmail || ''}}" },
+            { "name": "contactRole", "value": "={{$json.body.contact_role || $json.body.contactRole || ''}}" },
+            { "name": "linkedinUrl", "value": "={{$json.body.linkedin_url || $json.body.linkedinUrl || ''}}" },
+            { "name": "segment", "value": "={{$json.body.segment || 'ecommerce'}}" },
+            { "name": "notes", "value": "={{$json.body.notes || ''}}" }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Transform Lead",
+      "type": "n8n-nodes-base.set",
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.OUTREACH_BASE_URL}}/webhook/ingest",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"leads\": [{\"companyName\": \"{{$json.companyName}}\", \"website\": \"{{$json.website}}\", \"contactName\": \"{{$json.contactName}}\", \"contactEmail\": \"{{$json.contactEmail}}\", \"contactRole\": \"{{$json.contactRole}}\", \"linkedinUrl\": \"{{$json.linkedinUrl}}\", \"segment\": \"{{$json.segment}}\", \"notes\": \"{{$json.notes}}\"}], \"runPipeline\": false}"
+      },
+      "name": "Send to Outreach Agent",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\"success\": true, \"imported\": {{$json.imported}}, \"duplicates\": {{$json.duplicates}}}"
+      },
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "position": [900, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": { "main": [[{ "node": "Transform Lead", "type": "main", "index": 0 }]] },
+    "Transform Lead": { "main": [[{ "node": "Send to Outreach Agent", "type": "main", "index": 0 }]] },
+    "Send to Outreach Agent": { "main": [[{ "node": "Respond", "type": "main", "index": 0 }]] }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
