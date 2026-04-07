@@ -184,20 +184,28 @@ export async function redraftAllLeads(options?: RedraftOptions): Promise<Redraft
 // ── Helpers ─────────────────────────────────────────────────────
 
 function buildObservation(lead: Lead): string {
-  const parts: string[] = [];
-  if (lead.contact.role) parts.push(`${lead.contact.role} at ${lead.company.name}`);
-  if (lead.signals.painPointClues.length > 0) parts.push(lead.signals.painPointClues[0]);
-  if (lead.signals.operationalComplexityClues.length > 0) parts.push(lead.signals.operationalComplexityClues[0]);
-  if (lead.company.sizeEstimate) parts.push(`team of ~${lead.company.sizeEstimate}`);
-  if (lead.signals.multiChannelPresence.length > 0) parts.push(`active on ${lead.signals.multiChannelPresence.join(", ")}`);
-  if (parts.length === 0) parts.push("ecommerce brand founder running a Shopify store");
-  return parts.join(". ");
+  // ONLY include facts we actually know — never invent details
+  const facts: string[] = [];
+  if (lead.contact.role) facts.push(`Role: ${lead.contact.role}`);
+  if (lead.company.name) facts.push(`Company: ${lead.company.name}`);
+  if (lead.company.website) facts.push(`Website: ${lead.company.website}`);
+  if (lead.company.industry) facts.push(`Industry: ${lead.company.industry}`);
+  if (lead.company.sizeEstimate) facts.push(`Team size: ~${lead.company.sizeEstimate}`);
+  if (lead.company.platform) facts.push(`Platform: ${lead.company.platform}`);
+  // Only include signals that came from real data, not LLM-generated ones
+  if (lead.signals.rawNotes && !lead.signals.rawNotes.includes("[ENRICHMENT_FAILED]")) {
+    facts.push(`Notes: ${lead.signals.rawNotes.slice(0, 100)}`);
+  }
+  if (facts.length <= 2) facts.push("(Limited data — keep message general, ask questions instead of making assumptions)");
+  return facts.join(". ");
 }
 
 function buildPainHypothesis(lead: Lead): string {
-  if (lead.painPoints.length > 0) return lead.painPoints[0].hypothesis;
-  if (lead.signals.painPointClues.length > 0) return lead.signals.painPointClues[0];
-  return "Juggling Shopify admin, GA4, and 3-4 other tools to understand store performance — spending hours on data that should take minutes";
+  // Don't invent pain points — use a general niche-relevant hypothesis
+  if (lead.painPoints.length > 0 && lead.painPoints[0].confidence === "high") {
+    return lead.painPoints[0].hypothesis;
+  }
+  return "Most Shopify store owners are juggling too many tools for analytics, social, and CRM — we don't know this person's specific situation yet";
 }
 
 function inferNiche(lead: Lead): string {
@@ -220,9 +228,9 @@ function makeDraft(
     channel,
     messageType,
     subject: result.subject || undefined,
-    body: result.body,
-    personalizationSnippet: result.personalizationSnippet,
-    signalUsed: result.signalUsed,
+    body: String(result.body || ""),
+    personalizationSnippet: String(result.personalizationSnippet || ""),
+    signalUsed: String(result.signalUsed || ""),
     qualityIssues: [],
     createdAt,
   };

@@ -28,12 +28,11 @@ const TITLE_KEYWORDS: Record<LeadSegment, string[]> = {
   enterprise: ["cto", "vp engineering", "head of automation", "chief operating officer", "vp operations", "director of digital transformation"],
 };
 
-// Keyword search terms by segment (drives Apollo's q_keywords full-text search)
-// Keep to 1-2 terms — Apollo treats multi-word as a single phrase match
-const SEARCH_KEYWORDS: Record<LeadSegment, string> = {
-  shopify: "DTC brand",
-  ecommerce: "ecommerce brand",
-  enterprise: "operations automation",
+// Multiple keyword sets per segment — we rotate through them to get varied results
+const SEARCH_KEYWORD_POOL: Record<LeadSegment, string[]> = {
+  shopify: ["DTC brand", "ecommerce founder", "shopify brand", "online brand founder", "direct to consumer"],
+  ecommerce: ["ecommerce brand", "ecommerce director", "online retail", "ecommerce manager", "DTC ecommerce"],
+  enterprise: ["operations automation", "digital transformation", "enterprise operations", "process automation"],
 };
 
 // Negative title filters to exclude agencies/consultants
@@ -126,45 +125,62 @@ export const apolloConnector: LeadSourceConnector = {
     const perPage = Math.min(params.maxLeads, 100);
     const pages = Math.ceil(params.maxLeads / perPage);
 
-    // Step 1: Search for matching people (obfuscated results)
+    // Step 1: Search across multiple keyword sets for variety
+    const keywordPool = [...SEARCH_KEYWORD_POOL[params.segment]];
+    // Shuffle the keyword pool so each run uses a different order
+    for (let i = keywordPool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [keywordPool[i], keywordPool[j]] = [keywordPool[j], keywordPool[i]];
+    }
+
     const candidates: ApolloPersonResult[] = [];
+    const seenOrgNames = new Set<string>();
 
-    for (let page = 1; page <= pages && candidates.length < params.maxLeads; page++) {
-      log.info(`[Apollo] Searching page ${page} for ${params.segment} leads...`);
+    for (const keyword of keywordPool) {
+      if (candidates.length >= params.maxLeads) break;
 
-      const body: Record<string, unknown> = {
-        page,
-        per_page: perPage,
-        person_titles: titles,
-        person_not_titles: EXCLUDE_TITLES,
-        q_keywords: SEARCH_KEYWORDS[params.segment],
-        organization_num_employees_ranges: [`${minSize},${maxSize}`],
-        ...(params.filters || {}),
-      };
+      for (let page = 1; page <= 3 && candidates.length < params.maxLeads; page++) {
+        log.info(`[Apollo] Searching "${keyword}" page ${page}...`);
 
-      try {
-        const res = await http.post<ApolloSearchResponse>(
-          `${APOLLO_BASE}/v1/mixed_people/api_search`,
-          body,
-          { "X-Api-Key": key },
-        );
+        const body: Record<string, unknown> = {
+          page,
+          per_page: Math.min(perPage, params.maxLeads - candidates.length),
+          person_titles: titles,
+          person_not_titles: EXCLUDE_TITLES,
+          q_keywords: keyword,
+          organization_num_employees_ranges: [`${minSize},${maxSize}`],
+          ...(params.filters || {}),
+        };
 
-        const people = res.people || [];
-        log.info(`[Apollo] Page ${page}: ${people.length} results`);
+        try {
+          const res = await http.post<ApolloSearchResponse>(
+            `${APOLLO_BASE}/v1/mixed_people/api_search`,
+            body,
+            { "X-Api-Key": key },
+          );
 
-        for (const person of people) {
-          if (candidates.length >= params.maxLeads) break;
-          if (person.organization?.name) candidates.push(person);
+          const people = res.people || [];
+          log.info(`[Apollo] "${keyword}" page ${page}: ${people.length} results`);
+
+          for (const person of people) {
+            if (candidates.length >= params.maxLeads) break;
+            const orgName = person.organization?.name?.toLowerCase();
+            if (!orgName) continue;
+            // Deduplicate across keyword searches
+            if (seenOrgNames.has(orgName)) continue;
+            seenOrgNames.add(orgName);
+            candidates.push(person);
+          }
+
+          if (people.length === 0) break; // no more results for this keyword
+        } catch (err) {
+          log.error(`[Apollo] Search error: ${(err as Error).message}`);
+          break;
         }
-
-        if (people.length < perPage) break;
-      } catch (err) {
-        log.error(`[Apollo] Search error on page ${page}: ${(err as Error).message}`);
-        break;
       }
     }
 
-    log.info(`[Apollo] Found ${candidates.length} candidates, revealing contacts...`);
+    log.info(`[Apollo] Found ${candidates.length} unique candidates, revealing contacts...`);
 
     // Step 2: Reveal each person to get email + LinkedIn (costs 1 credit each)
     const leads: RawLead[] = [];

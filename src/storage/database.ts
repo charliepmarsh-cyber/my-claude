@@ -110,19 +110,31 @@ export function getLeadById(id: string): Lead | undefined {
 export function getLeadsByStatus(status: string): Lead[] {
   const db = getDb();
   const rows = db.prepare("SELECT data FROM leads WHERE status = ? ORDER BY score DESC").all(status) as { data: string }[];
-  return rows.map((r) => LeadSchema.parse(JSON.parse(r.data)));
+  return parseSafe(rows);
 }
 
 export function getLeadsBySegment(segment: string): Lead[] {
   const db = getDb();
   const rows = db.prepare("SELECT data FROM leads WHERE segment = ? ORDER BY score DESC").all(segment) as { data: string }[];
-  return rows.map((r) => LeadSchema.parse(JSON.parse(r.data)));
+  return parseSafe(rows);
 }
 
 export function getAllLeads(): Lead[] {
   const db = getDb();
   const rows = db.prepare("SELECT data FROM leads ORDER BY score DESC NULLS LAST").all() as { data: string }[];
-  return rows.map((r) => LeadSchema.parse(JSON.parse(r.data)));
+  return parseSafe(rows);
+}
+
+function parseSafe(rows: { data: string }[]): Lead[] {
+  const leads: Lead[] = [];
+  for (const r of rows) {
+    try {
+      leads.push(LeadSchema.parse(JSON.parse(r.data)));
+    } catch {
+      // Skip corrupted rows
+    }
+  }
+  return leads;
 }
 
 export function getLeadCount(): number {

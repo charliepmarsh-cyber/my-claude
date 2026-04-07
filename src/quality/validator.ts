@@ -105,17 +105,18 @@ export function validateLead(lead: Lead): ValidationResult {
 export function validateDraft(draft: OutreachDraft): ValidationResult {
   const issues: ValidationIssue[] = [];
 
-  if (!draft.body || draft.body.trim().length === 0) {
+  const bodyStr = typeof draft.body === "string" ? draft.body : String(draft.body || "");
+  if (!bodyStr || bodyStr.trim().length === 0) {
     issues.push({ field: "body", severity: "error", message: "Empty message body", rule: "required_field" });
   }
 
   // Check for spam phrases
   for (const pattern of SPAM_PHRASES) {
-    if (pattern.test(draft.body)) {
+    if (pattern.test(bodyStr)) {
       issues.push({
         field: "body",
         severity: "error",
-        message: `Contains spammy language: "${draft.body.match(pattern)?.[0]}"`,
+        message: `Contains spammy language: "${bodyStr.match(pattern)?.[0]}"`,
         rule: "spam_check",
       });
     }
@@ -123,11 +124,11 @@ export function validateDraft(draft: OutreachDraft): ValidationResult {
 
   // Check for generic phrases
   for (const pattern of GENERIC_PHRASES) {
-    if (pattern.test(draft.body)) {
+    if (pattern.test(bodyStr)) {
       issues.push({
         field: "body",
         severity: "warning",
-        message: `Contains generic phrase: "${draft.body.match(pattern)?.[0]}"`,
+        message: `Contains generic phrase: "${bodyStr.match(pattern)?.[0]}"`,
         rule: "generic_check",
       });
     }
@@ -135,25 +136,25 @@ export function validateDraft(draft: OutreachDraft): ValidationResult {
 
   // Check for unverifiable claims
   for (const pattern of UNVERIFIABLE_CLAIMS) {
-    if (pattern.test(draft.body)) {
+    if (pattern.test(bodyStr)) {
       issues.push({
         field: "body",
         severity: "error",
-        message: `Contains unverifiable claim: "${draft.body.match(pattern)?.[0]}"`,
+        message: `Contains unverifiable claim: "${bodyStr.match(pattern)?.[0]}"`,
         rule: "claim_check",
       });
     }
   }
 
   // Length checks per channel
-  if (draft.messageType === "linkedin_connection_note" && draft.body.length > 300) {
-    issues.push({ field: "body", severity: "error", message: `Connection note too long (${draft.body.length}/300 chars)`, rule: "length_check" });
+  if (draft.messageType === "linkedin_connection_note" && bodyStr.length > 300) {
+    issues.push({ field: "body", severity: "error", message: `Connection note too long (${bodyStr.length}/300 chars)`, rule: "length_check" });
   }
-  if (draft.messageType === "x_dm" && draft.body.length > 300) {
-    issues.push({ field: "body", severity: "error", message: `X DM too long (${draft.body.length}/300 chars)`, rule: "length_check" });
+  if (draft.messageType === "x_dm" && bodyStr.length > 300) {
+    issues.push({ field: "body", severity: "error", message: `X DM too long (${bodyStr.length}/300 chars)`, rule: "length_check" });
   }
   if (draft.messageType === "email_first_touch") {
-    const wordCount = draft.body.split(/\s+/).length;
+    const wordCount = bodyStr.split(/\s+/).length;
     if (wordCount > 200) {
       issues.push({ field: "body", severity: "warning", message: `Email too long (${wordCount} words, target <150)`, rule: "length_check" });
     }

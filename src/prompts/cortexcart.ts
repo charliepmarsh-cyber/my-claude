@@ -1,50 +1,28 @@
 /**
- * CortexCart-specific outreach prompts — v2.
- * Built from the full CortexCart product brief, ICP definitions,
- * tone guidelines, and dual-variant messaging framework.
+ * CortexCart-specific outreach prompts — v3.
+ * Focuses on natural, human voice. No robotic analysis.
  */
 
-export const CORTEXCART_SYSTEM_PROMPT = `You are an outreach writer for CortexCart — an AI-powered e-commerce analytics platform.
+export const CORTEXCART_SYSTEM_PROMPT = `You write outreach messages for CortexCart, a free AI analytics dashboard for Shopify stores.
 
-PRODUCT (CortexCart v2.0 Beta):
-- Free AI analytics dashboard that replaces 5-8 separate tools
-- Consolidates: store analytics, AI homepage/product analysis, social media scheduling, CRM/unified inbox, heatmaps, A/B testing, financial tracking, Mailchimp + GA4 integration
-- Free during beta, 1.5M AI tokens per account, no credit card required
-- Built for SMB Shopify stores ($0-$500K revenue, 1-10 person teams)
-- Sign up: https://tracker.cortexcart.com
-- UK-based company, global users
+WHAT CORTEXCART IS:
+Free during beta. Replaces 5-8 tools: analytics, AI product/homepage analysis, social scheduling, CRM inbox, heatmaps, A/B testing, financial tracking. Built for small Shopify stores. Sign up: https://tracker.cortexcart.com
 
-KEY DIFFERENTIATORS:
-- vs Triple Whale ($100-$1200/mo): CortexCart is free, built for SMBs not $1M+ brands
-- vs GA4: CortexCart adds AI recommendations + social + CRM in one place
-- vs Hotjar ($32+/mo): CortexCart includes heatmaps + analytics + social — bundled free
-- vs Hootsuite/Buffer ($19-$99/mo): Social scheduling included as part of the platform
-- vs Shopify Analytics: CortexCart adds AI recommendations, social management, heatmaps
+YOUR WRITING STYLE:
+Write like a real person texting a friend who runs a Shopify store. Short sentences. Casual punctuation. No corporate speak. Think "founder chatting at a coffee shop" not "sales rep reading a script."
 
-YOUR VOICE:
-- Sound like a helpful founder who's been in their shoes
-- Use "we built" not "our platform offers"
-- Reference specific things about their store
-- Keep sentences short and punchy
-- End with questions, not statements
-- Acknowledge their current tools respectfully
+CRITICAL RULES:
+1. ONLY reference facts you are given. If you don't know their product, their revenue, or their tech stack — DON'T MAKE IT UP. Say something general like "running a DTC brand" or "managing a Shopify store."
+2. NEVER invent specific problems. Don't say "you're manually handling customer support" unless the data explicitly says so. Instead, ask questions: "how are you tracking conversions?" or "curious what tools you're using."
+3. Keep it SHORT. Emails: 50-80 words. LinkedIn DMs: under 80 words. X DMs: under 50 words. Connection notes: under 280 chars.
+4. Sound like a human. Use "we built" not "our platform offers." Use "pretty useful" not "powerful solution." Use contractions.
+5. ONE call to action per message. Make it easy to say yes to.
+6. Frame beta as early access, not "free trial."
 
-BANNED PHRASES (never use these):
-- "Just checking in" / "Hope you're doing well" / "I wanted to reach out because"
-- "Are you the right person?" / "Do you have 15 minutes?"
-- "We help [type] do [thing]" / "I noticed you're in the [industry] space"
-- "Revolutionary" / "game-changing" / "cutting-edge" / "synergy" / "leverage"
-- "I'd love to" / "I'd be happy to"
-- No exclamation marks in subject lines
-- No paragraphs longer than 2 sentences
+NEVER USE THESE PHRASES:
+"I noticed [company] [invented observation]" / "founder-led organization" / "consuming significant time" / "business strategy" / "operational complexity" / "streamline" / "leverage" / "synergy" / "game-changer" / "revolutionary" / "I'd love to" / "I'd be happy to" / "hope this finds you well" / "just checking in"
 
-MESSAGE ARCHITECTURE (every message follows this):
-1. PERSONALIZED HOOK — 1 sentence about them specifically
-2. BRIDGE — connect their situation to a relevant pain point
-3. VALUE PROP — 1 sentence on what CortexCart does for people like them
-4. LOW-FRICTION CTA — a question that's easy to say yes to
-
-Output valid JSON only. No markdown fences, no explanation.`;
+Output valid JSON only. No markdown fences.`;
 
 // ── Cold Email ──────────────────────────────────────────────────
 
@@ -56,42 +34,25 @@ export function buildCortexCartEmail(ctx: {
   painHypothesis: string;
   niche: string;
 }): string {
-  return `Write TWO cold email variants for a Shopify store owner. Max 80 words each.
+  return `Write TWO cold email variants. 50-80 words each MAX.
 
-PROSPECT:
-- Name: ${ctx.contactFirstName}
-- Role: ${ctx.contactRole}
-- Store/Company: ${ctx.companyName}
-- Niche: ${ctx.niche}
-- Observation: ${ctx.observation}
-- Pain hypothesis: ${ctx.painHypothesis}
+TO: ${ctx.contactFirstName} (${ctx.contactRole}) at ${ctx.companyName}
+NICHE: ${ctx.niche}
+WHAT WE ACTUALLY KNOW: ${ctx.observation}
 
-VARIANT A (Insight-Driven): Lead with a specific observation or data point about their store/niche. Position yourself as someone paying attention to their market.
+VARIANT A (Insight): Open with something specific about their niche (not about them personally unless you KNOW it). Connect to how most store owners in that niche track data. Mention CortexCart casually.
 
-VARIANT B (Question-Driven): Lead with a genuine question about their business that naturally opens a conversation about analytics, social, or optimization.
+VARIANT B (Question): Open with a genuine question about how they track store performance. Let the conversation happen naturally.
 
-Rules:
-- Subject lines: lowercase, 3-6 words, curiosity or specificity
-- Body: 50-80 words max, plain text feel, no HTML
-- Signature: first name only
-- One CTA only per variant
-- Frame beta as "early access" not "free trial"
-- Never list features in bullets
+IMPORTANT: If you don't know specifics about their store, DON'T FAKE IT. Talk about their niche generally or ask a question. Be honest and casual.
 
-Output JSON:
+Subject lines: lowercase, 3-6 words max.
+Sign off with just a first name.
+
+JSON:
 {
-  "variantA": {
-    "subject": "lowercase subject line",
-    "body": "the email body",
-    "personalizationSnippet": "what you referenced",
-    "signalUsed": "the observation"
-  },
-  "variantB": {
-    "subject": "lowercase subject line",
-    "body": "the email body",
-    "personalizationSnippet": "what you referenced",
-    "signalUsed": "the observation"
-  }
+  "variantA": { "subject": "...", "body": "...", "personalizationSnippet": "...", "signalUsed": "..." },
+  "variantB": { "subject": "...", "body": "...", "personalizationSnippet": "...", "signalUsed": "..." }
 }`;
 }
 
@@ -103,25 +64,15 @@ export function buildCortexCartLinkedInNote(ctx: {
   niche: string;
   observation: string;
 }): string {
-  return `Write a LinkedIn connection request (max 280 chars) for a Shopify store owner.
+  return `Write a LinkedIn connection request. Max 280 chars. NO PITCH.
 
-Name: ${ctx.contactFirstName}
-Store: ${ctx.companyName}
-Niche: ${ctx.niche}
-Observation: ${ctx.observation}
+TO: ${ctx.contactFirstName} at ${ctx.companyName}
+NICHE: ${ctx.niche}
+WHAT WE KNOW: ${ctx.observation}
 
-Rules:
-- Mention their store by name
-- Never pitch in the connection request
-- Keep it natural — you found their store and want to connect
-- Under 280 characters
+Just say you came across their store/brand and want to connect. That's it. Don't mention CortexCart. Don't mention analytics. Just be a normal human connecting on LinkedIn.
 
-Output JSON:
-{
-  "body": "the connection note",
-  "personalizationSnippet": "what you referenced",
-  "signalUsed": "the observation"
-}`;
+JSON: { "body": "...", "personalizationSnippet": "...", "signalUsed": "..." }`;
 }
 
 // ── LinkedIn Follow-Up DM ───────────────────────────────────────
@@ -134,31 +85,20 @@ export function buildCortexCartLinkedInMessage(ctx: {
   observation: string;
   painHypothesis: string;
 }): string {
-  return `Write a LinkedIn DM (max 80 words) to send AFTER they accept your connection.
+  return `Write a LinkedIn DM to send AFTER they accept. Max 80 words.
 
-Name: ${ctx.contactFirstName}
-Role: ${ctx.contactRole}
-Store: ${ctx.companyName}
-Niche: ${ctx.niche}
-Observation: ${ctx.observation}
-Pain hypothesis: ${ctx.painHypothesis}
+TO: ${ctx.contactFirstName} (${ctx.contactRole}) at ${ctx.companyName}
+NICHE: ${ctx.niche}
+WHAT WE KNOW: ${ctx.observation}
 
-Rules:
-- Thank them for connecting (brief, not sycophantic)
-- Ask a genuine question about how they track performance
-- Mention CortexCart only as "a free tool we built" — don't list features
-- End with a question
-- Max 80 words
+Thanks for connecting (keep it brief). Ask ONE genuine question about how they track their store's performance. Mention "we built a free dashboard" only if it fits naturally. End with a question.
 
-Output JSON:
-{
-  "body": "the message",
-  "personalizationSnippet": "what you referenced",
-  "signalUsed": "the observation"
-}`;
+Don't invent problems they have. Ask what their setup looks like.
+
+JSON: { "body": "...", "personalizationSnippet": "...", "signalUsed": "..." }`;
 }
 
-// ── X (Twitter) Engagement Strategy ─────────────────────────────
+// ── X Engagement Strategy ───────────────────────────────────────
 
 export function buildCortexCartXEngagement(ctx: {
   contactFirstName: string;
@@ -166,25 +106,13 @@ export function buildCortexCartXEngagement(ctx: {
   niche: string;
   observation: string;
 }): string {
-  return `Write an X engagement strategy (before DMing) for a Shopify store owner.
+  return `Give 2-3 ways to engage with this person's X content BEFORE DMing. Max 60 words.
 
-Name: ${ctx.contactFirstName}
-Store: ${ctx.companyName}
-Niche: ${ctx.niche}
-Observation: ${ctx.observation}
+PERSON: ${ctx.contactFirstName} at ${ctx.companyName} (${ctx.niche})
 
-Rules:
-- Give 2-3 specific ideas for engaging with their content FIRST
-- The goal is 2-3 genuine interactions before any DM
-- Focus on adding value, not just liking posts
-- Max 60 words total
+Be specific about what kind of posts to engage with and what to say. The goal is to be genuinely helpful, not to set up a pitch.
 
-Output JSON:
-{
-  "body": "the engagement strategy",
-  "personalizationSnippet": "what to engage with",
-  "signalUsed": "the observation"
-}`;
+JSON: { "body": "...", "personalizationSnippet": "...", "signalUsed": "..." }`;
 }
 
 // ── X DM ────────────────────────────────────────────────────────
@@ -195,54 +123,29 @@ export function buildCortexCartXDm(ctx: {
   niche: string;
   observation: string;
 }): string {
-  return `Write an X DM (max 50 words) to send AFTER 2-3 genuine interactions.
+  return `Write an X DM. UNDER 50 WORDS. Send after 2-3 genuine interactions.
 
-Name: ${ctx.contactFirstName}
-Store: ${ctx.companyName}
-Niche: ${ctx.niche}
-Observation: ${ctx.observation}
+TO: ${ctx.contactFirstName} at ${ctx.companyName} (${ctx.niche})
 
-Rules:
-- Under 50 words (strict)
-- Reference a previous interaction or their content
-- Mention CortexCart casually — "free dashboard we built"
-- End with a question
-- No feature lists
+Reference a previous interaction or their content. Mention CortexCart super casually — "free dashboard we built." End with a question. Sound like a real person, not a marketer.
 
-Output JSON:
-{
-  "body": "the DM (under 50 words)",
-  "personalizationSnippet": "what you referenced",
-  "signalUsed": "the observation"
-}`;
+JSON: { "body": "...", "personalizationSnippet": "...", "signalUsed": "..." }`;
 }
 
-// ── Follow-Up Email ─────────────────────────────────────────────
+// ── Follow-Up Emails ────────────────────────────────────────────
 
 export function buildCortexCartFollowUp(ctx: {
   contactFirstName: string;
   companyName: string;
   followUpNumber: number;
 }): string {
-  return `Write a follow-up email (${ctx.followUpNumber === 1 ? "Day 3-5" : "Day 10 final"}).
+  const rules = ctx.followUpNumber === 1
+    ? `Bump with something useful — share a quick insight about their niche or mention the free dashboard. Max 40 words. Don't say "just checking in" or "following up." Add value or don't send it.`
+    : `Final message. Offer to run a free AI analysis of their homepage — no strings attached. Max 40 words. Keep it light and easy to say yes to.`;
 
-Name: ${ctx.contactFirstName}
-Store: ${ctx.companyName}
-Follow-up #: ${ctx.followUpNumber}
+  return `Write follow-up email #${ctx.followUpNumber} for ${ctx.contactFirstName} at ${ctx.companyName}.
 
-Rules:
-${ctx.followUpNumber === 1 ? `- Shorter than the original email
-- Bump with new value — don't just "check in"
-- Mention "free AI analytics dashboard" + link: https://tracker.cortexcart.com
-- Max 40 words` : `- Final touch — share a relevant insight or offer to run their AI homepage analysis for free
-- "No strings attached" tone
-- Max 40 words`}
+${rules}
 
-Output JSON:
-{
-  "subject": "re: [keep short]",
-  "body": "the follow-up",
-  "personalizationSnippet": "what makes this relevant",
-  "signalUsed": "follow-up timing"
-}`;
+JSON: { "subject": "re: ...", "body": "...", "personalizationSnippet": "...", "signalUsed": "..." }`;
 }
