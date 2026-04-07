@@ -96,14 +96,13 @@ export async function runDiscovery(config: DiscoveryConfig): Promise<DiscoveryRe
   const { unique, dupeCount } = deduplicateRawLeads(allRawLeads);
   log.info(`Discovery: ${dupeCount} cross-source duplicates removed`);
 
-  // Step 4: Filter out leads already in storage
-  const existingDomains = getExistingDomains();
+  // Step 4: Filter out leads already in storage (by domain, company name, or email)
+  const existingIndex = getExistingLeadIndex();
   const newRawLeads: RawLead[] = [];
   let existingCount = 0;
 
   for (const raw of unique) {
-    const domain = extractDomain(raw.website);
-    if (domain && existingDomains.has(domain)) {
+    if (isExistingLead(raw, existingIndex)) {
       existingCount++;
       continue;
     }
@@ -222,18 +221,40 @@ function buildDedupKey(lead: RawLead): string {
   return parts.length > 0 ? parts.join("|") : lead.companyName.toLowerCase().trim();
 }
 
-function getExistingDomains(): Set<string> {
+interface ExistingLeadIndex {
+  domains: Set<string>;
+  companyNames: Set<string>;
+  emails: Set<string>;
+}
+
+function getExistingLeadIndex(): ExistingLeadIndex {
   try {
     const existing = getAllLeads();
-    const domains = new Set<string>();
+    const index: ExistingLeadIndex = {
+      domains: new Set(),
+      companyNames: new Set(),
+      emails: new Set(),
+    };
     for (const lead of existing) {
       const domain = extractDomain(lead.company.website);
-      if (domain) domains.add(domain);
+      if (domain) index.domains.add(domain);
+      if (lead.company.name) index.companyNames.add(lead.company.name.toLowerCase().trim());
+      if (lead.contact.email) index.emails.add(lead.contact.email.toLowerCase().trim());
     }
-    return domains;
+    return index;
   } catch {
-    return new Set();
+    return { domains: new Set(), companyNames: new Set(), emails: new Set() };
   }
+}
+
+function isExistingLead(raw: RawLead, index: ExistingLeadIndex): boolean {
+  const domain = extractDomain(raw.website);
+  if (domain && index.domains.has(domain)) return true;
+  const name = raw.companyName.toLowerCase().trim();
+  if (name && index.companyNames.has(name)) return true;
+  const email = (raw.contactEmail || "").toLowerCase().trim();
+  if (email && index.emails.has(email)) return true;
+  return false;
 }
 
 function emptyResult(): DiscoveryResult {
