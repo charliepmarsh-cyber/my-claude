@@ -47,7 +47,7 @@ VARIANT B (Question): Open with a genuine question about how they track store pe
 IMPORTANT: If you don't know specifics about their store, DON'T FAKE IT. Talk about their niche generally or ask a question. Be honest and casual.
 
 Subject lines: lowercase, 3-6 words max.
-Sign off with just a first name.
+Sign off with: Charlie
 
 JSON:
 {
@@ -140,8 +140,8 @@ export function buildCortexCartFollowUp(ctx: {
   followUpNumber: number;
 }): string {
   const rules = ctx.followUpNumber === 1
-    ? `Bump with something useful — share a quick insight about their niche or mention the free dashboard. Max 40 words. Don't say "just checking in" or "following up." Add value or don't send it.`
-    : `Final message. Offer to run a free AI analysis of their homepage — no strings attached. Max 40 words. Keep it light and easy to say yes to.`;
+    ? `Bump with something useful — share a quick insight about their niche or mention the free dashboard. Max 40 words. Don't say "just checking in" or "following up." Add value or don't send it. Sign off: Charlie`
+    : `Final message. Offer to run a free AI analysis of their homepage — no strings attached. Max 40 words. Keep it light and easy to say yes to. Sign off: Charlie`;
 
   return `Write follow-up email #${ctx.followUpNumber} for ${ctx.contactFirstName} at ${ctx.companyName}.
 
