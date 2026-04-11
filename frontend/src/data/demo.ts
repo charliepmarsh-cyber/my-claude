@@ -122,5 +122,130 @@ export const demoData = {
       { name: 'Portable Bluetooth Speaker', orders: 3, revenue: 150 },
       { name: 'Leather Wallet', orders: 3, revenue: 150 },
     ],
+    weeklyTrend: [18, 22, 26, 32],
+  },
+
+  funnel: {
+    stages: [
+      { name: 'Site Visits', count: 94210, color: '#3b82f6' },
+      { name: 'Product Views', count: 28940, color: '#6366f1' },
+      { name: 'Add to Cart', count: 4000, color: '#8b5cf6' },
+      { name: 'Checkout Started', count: 2680, color: '#a855f7' },
+      { name: 'Purchase', count: 1842, color: '#10b981' },
+    ],
+    conversionRates: [
+      { from: 'Visits', to: 'Views', rate: 0.307 },
+      { from: 'Views', to: 'Cart', rate: 0.138 },
+      { from: 'Cart', to: 'Checkout', rate: 0.670 },
+      { from: 'Checkout', to: 'Purchase', rate: 0.687 },
+    ],
+    overall: 0.0195,
+    dropoffs: [
+      { from: 'Product View', to: 'Add to Cart', dropRate: 0.862, suggestion: 'Add urgency elements and social proof below product images' },
+      { from: 'Add to Cart', to: 'Checkout', dropRate: 0.330, suggestion: 'Simplify checkout — enable guest checkout and reduce form fields' },
+      { from: 'Checkout', to: 'Purchase', dropRate: 0.313, suggestion: 'Add more payment options (Apple Pay, Klarna) and trust badges' },
+    ],
+    byDevice: [
+      { device: 'Desktop', visits: 58410, purchases: 1210, rate: 0.0207 },
+      { device: 'Mobile', visits: 29205, purchases: 540, rate: 0.0185 },
+      { device: 'Tablet', visits: 6595, purchases: 92, rate: 0.0139 },
+    ],
+  },
+
+  abTesting: {
+    experiments: [
+      {
+        id: 'exp_001', name: 'Product Page CTA Color', status: 'running' as const,
+        startDate: '2026-03-28', traffic: 4820,
+        variants: [
+          { name: 'Control (Blue)', visitors: 2410, conversions: 142, revenue: 7100, convRate: 5.89 },
+          { name: 'Variant A (Green)', visitors: 2410, conversions: 168, revenue: 8400, convRate: 6.97 },
+        ],
+        significance: 0.92, metric: 'Conversion Rate', uplift: 18.3,
+      },
+      {
+        id: 'exp_002', name: 'Checkout Flow: 1-Step vs 2-Step', status: 'completed' as const,
+        startDate: '2026-03-15', traffic: 5340,
+        variants: [
+          { name: 'Control (2-Step)', visitors: 2670, conversions: 178, revenue: 8900, convRate: 6.67 },
+          { name: 'Variant A (1-Step)', visitors: 2670, conversions: 214, revenue: 10700, convRate: 8.01 },
+        ],
+        significance: 0.97, metric: 'Conversion Rate', uplift: 20.1,
+      },
+      {
+        id: 'exp_003', name: 'Homepage Hero Banner', status: 'running' as const,
+        startDate: '2026-04-05', traffic: 2100,
+        variants: [
+          { name: 'Control (Static)', visitors: 1050, conversions: 31, revenue: 1550, convRate: 2.95 },
+          { name: 'Variant A (Animated)', visitors: 1050, conversions: 38, revenue: 1900, convRate: 3.62 },
+        ],
+        significance: 0.68, metric: 'Conversion Rate', uplift: 22.7,
+      },
+    ],
+  },
+
+  aiRecommendations: {
+    totalRevenueFromRecs: 18420,
+    clickThroughRate: 0.124,
+    conversionLift: 0.23,
+    avgOrderValueLift: 12.40,
+    recommendations: [
+      { type: 'cross_sell', trigger: 'Premium Wireless Earbuds', suggested: 'Portable Bluetooth Speaker', confidence: 0.94, shown: 1240, clicked: 186, conversions: 48, revenue: 2400 },
+      { type: 'upsell', trigger: 'Organic Cotton T-Shirt', suggested: 'Premium Wireless Earbuds', confidence: 0.87, shown: 980, clicked: 127, conversions: 34, revenue: 1700 },
+      { type: 'cross_sell', trigger: 'Yoga Mat (Non-Slip)', suggested: 'Resistance Bands Set', confidence: 0.91, shown: 860, clicked: 112, conversions: 29, revenue: 870 },
+      { type: 'bundle', trigger: 'LED Desk Lamp', suggested: 'Bamboo Phone Stand', confidence: 0.82, shown: 720, clicked: 94, conversions: 22, revenue: 550 },
+      { type: 'frequently_bought', trigger: 'Water Bottle 1L', suggested: 'Yoga Mat (Non-Slip)', confidence: 0.78, shown: 640, clicked: 77, conversions: 18, revenue: 720 },
+    ],
+    revenueImpact: [
+      { week: 'W1', organic: 22400, withRecs: 26200 },
+      { week: 'W2', organic: 23100, withRecs: 27800 },
+      { week: 'W3', organic: 21800, withRecs: 26900 },
+      { week: 'W4', organic: 24200, withRecs: 29400 },
+    ],
+  },
+
+  profit: {
+    totalRevenue: 148320.50,
+    totalCost: 82450.20,
+    grossProfit: 65870.30,
+    profitMargin: 0.444,
+    adSpend: 4280.50,
+    netProfit: 61589.80,
+    netMargin: 0.415,
+    byProduct: [
+      { name: 'Premium Wireless Earbuds', revenue: 14196, cost: 5680, profit: 8516, margin: 0.60 },
+      { name: 'LED Desk Lamp', revenue: 8040, cost: 3620, profit: 4420, margin: 0.55 },
+      { name: 'Organic Cotton T-Shirt', revenue: 6930, cost: 2080, profit: 4850, margin: 0.70 },
+      { name: 'Water Bottle 1L', revenue: 5940, cost: 2380, profit: 3560, margin: 0.60 },
+      { name: 'Bluetooth Speaker', revenue: 5400, cost: 2700, profit: 2700, margin: 0.50 },
+      { name: 'Yoga Mat', revenue: 4840, cost: 1940, profit: 2900, margin: 0.60 },
+      { name: 'Leather Wallet', revenue: 4800, cost: 1440, profit: 3360, margin: 0.70 },
+      { name: 'Bamboo Phone Stand', revenue: 3900, cost: 1560, profit: 2340, margin: 0.60 },
+      { name: 'Resistance Bands', revenue: 2460, cost: 740, profit: 1720, margin: 0.70 },
+      { name: 'Soy Candle', revenue: 1850, cost: 560, profit: 1290, margin: 0.70 },
+    ],
+    byChannel: [
+      { channel: 'Shopify', revenue: 98450, cost: 54150, profit: 44300, margin: 0.45 },
+      { channel: 'Amazon', revenue: 28900, cost: 17340, profit: 11560, margin: 0.40 },
+      { channel: 'Google Ads', revenue: 12470, cost: 8560, profit: 3910, margin: 0.31 },
+      { channel: 'Email', revenue: 5200, cost: 1560, profit: 3640, margin: 0.70 },
+      { channel: 'AI Referrals', revenue: 3300, cost: 840, profit: 2460, margin: 0.75 },
+    ],
+    timeSeries: generateTimeSeries().map(d => ({
+      date: d.date,
+      revenue: d.revenue,
+      cost: Math.round(d.revenue * 0.556),
+      profit: Math.round(d.revenue * 0.444),
+    })),
+  },
+
+  // Sparkline data for KPI trends
+  sparklines: {
+    revenue: [4100, 4500, 4300, 4800, 5000, 4700, 4900, 5100, 4600, 4800, 5200, 4940],
+    orders: [52, 58, 55, 62, 65, 60, 63, 66, 59, 62, 67, 64],
+    aov: [78, 79, 80, 79, 81, 80, 82, 81, 80, 81, 80, 81],
+    pageViews: [2800, 3100, 2900, 3300, 3500, 3200, 3400, 3600, 3100, 3300, 3500, 3400],
+    conversion: [3.2, 3.5, 3.4, 3.7, 3.8, 3.6, 3.7, 3.9, 3.5, 3.7, 3.8, 3.8],
+    returning: [38, 39, 40, 39, 41, 40, 42, 41, 41, 42, 42, 42],
   },
 };

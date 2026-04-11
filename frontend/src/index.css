@@ -1,1 +1,82 @@
 @import "tailwindcss";
+
+:root {
+  --pulse-primary: #3b82f6;
+  --pulse-accent: #8b5cf6;
+  --pulse-navy: #1a1f36;
+  --pulse-success: #10b981;
+  --pulse-warning: #f59e0b;
+  --pulse-danger: #ef4444;
+}
+
+/* Brand gradient utility */
+.pulse-gradient {
+  background: linear-gradient(135deg, var(--pulse-primary), var(--pulse-accent));
+}
+
+.pulse-gradient-text {
+  background: linear-gradient(135deg, var(--pulse-primary), var(--pulse-accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Shimmer animation for badges */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.badge-shimmer {
+  background: linear-gradient(90deg, transparent 0%, rgba(139,92,246,0.3) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+/* Typing dots animation */
+@keyframes bounce-dot {
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-4px); }
+}
+
+.typing-dot {
+  animation: bounce-dot 1.4s ease-in-out infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+/* Pulse animation */
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+.pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Funnel stage animation */
+@keyframes funnel-expand {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+.funnel-bar {
+  transform-origin: left;
+  animation: funnel-expand 0.8s ease-out forwards;
+}
+
+/* Custom scrollbar for sidebar */
+.sidebar-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.1);
+  border-radius: 2px;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.2);
+}

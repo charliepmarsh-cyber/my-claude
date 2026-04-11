@@ -9,6 +9,10 @@ import ProductsPage from './pages/ProductsPage';
 import AttributionPage from './pages/AttributionPage';
 import AIReferralsPage from './pages/AIReferralsPage';
 import AIAssistantPage from './pages/AIAssistantPage';
+import FunnelPage from './pages/FunnelPage';
+import ABTestingPage from './pages/ABTestingPage';
+import AIRecommendationsPage from './pages/AIRecommendationsPage';
+import ProfitPage from './pages/ProfitPage';
 
 function AppLayout() {
   return (
@@ -37,9 +41,13 @@ export default function App() {
             <Route path="/" element={<DashboardPage />} />
             <Route path="/channels" element={<ChannelsPage />} />
             <Route path="/products" element={<ProductsPage />} />
+            <Route path="/profit" element={<ProfitPage />} />
+            <Route path="/funnel" element={<FunnelPage />} />
             <Route path="/attribution" element={<AttributionPage />} />
             <Route path="/ai-referrals" element={<AIReferralsPage />} />
+            <Route path="/ai-recommendations" element={<AIRecommendationsPage />} />
             <Route path="/ai-assistant" element={<AIAssistantPage />} />
+            <Route path="/ab-testing" element={<ABTestingPage />} />
           </Route>
         </Routes>
       </BrowserRouter>
