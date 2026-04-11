@@ -52,7 +52,7 @@ export default function Sidebar() {
         <div className="flex items-center gap-2.5">
           <div className="relative">
             <div className="absolute inset-0 bg-blue-500/30 blur-lg rounded-full" />
-            <Activity className="w-7 h-7 text-blue-400 relative" />
+            <Activity className="w-7 h-7 text-blue-400 relative heartbeat-icon" />
           </div>
           <span className="text-xl font-bold pulse-gradient-text">PulseCommerce</span>
         </div>

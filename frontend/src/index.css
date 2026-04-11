@@ -18,7 +18,6 @@ body {
   min-height: 100vh;
 }
 
-/* Brand gradient utility */
 .pulse-gradient {
   background: linear-gradient(135deg, var(--pulse-primary), var(--pulse-accent));
 }
@@ -30,7 +29,7 @@ body {
   background-clip: text;
 }
 
-/* Glass card */
+/* Glass cards */
 .glass {
   background: var(--glass-bg);
   backdrop-filter: blur(16px);
@@ -54,71 +53,96 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* Shimmer animation for badges */
+/* Shimmer badge */
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
-
 .badge-shimmer {
   background: linear-gradient(90deg, transparent 0%, rgba(139,92,246,0.3) 50%, transparent 100%);
   background-size: 200% 100%;
   animation: shimmer 3s ease-in-out infinite;
 }
 
-/* Typing dots animation */
+/* Typing dots */
 @keyframes bounce-dot {
   0%, 60%, 100% { transform: translateY(0); }
   30% { transform: translateY(-4px); }
 }
-
-.typing-dot {
-  animation: bounce-dot 1.4s ease-in-out infinite;
-}
+.typing-dot { animation: bounce-dot 1.4s ease-in-out infinite; }
 .typing-dot:nth-child(2) { animation-delay: 0.2s; }
 .typing-dot:nth-child(3) { animation-delay: 0.4s; }
 
-/* Pulse animation */
+/* Heartbeat pulse */
 @keyframes pulse-glow {
   0%, 100% { opacity: 0.4; }
   50% { opacity: 1; }
 }
+.pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
 
-.pulse-glow {
-  animation: pulse-glow 2s ease-in-out infinite;
+/* Card border breathing glow */
+@keyframes border-breathe {
+  0%, 100% { border-color: rgba(255,255,255,0.35); box-shadow: 0 8px 32px rgba(0,0,0,0.06); }
+  50% { border-color: rgba(139,92,246,0.2); box-shadow: 0 8px 32px rgba(139,92,246,0.08); }
+}
+.glass-breathe {
+  animation: border-breathe 4s ease-in-out infinite;
 }
 
-/* Funnel stage animation */
+/* Funnel expand */
 @keyframes funnel-expand {
   from { transform: scaleX(0); }
   to { transform: scaleX(1); }
 }
+.funnel-bar { transform-origin: left; animation: funnel-expand 0.8s ease-out forwards; }
 
-.funnel-bar {
-  transform-origin: left;
-  animation: funnel-expand 0.8s ease-out forwards;
+/* Glow effects */
+.glow-blue { box-shadow: 0 0 20px rgba(59,130,246,0.15), 0 0 60px rgba(59,130,246,0.05); }
+.glow-violet { box-shadow: 0 0 20px rgba(139,92,246,0.15), 0 0 60px rgba(139,92,246,0.05); }
+
+/* Fade-in for page content */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-up {
+  animation: fade-up 0.4s ease-out forwards;
 }
 
-/* Glow effect for accent elements */
-.glow-blue {
-  box-shadow: 0 0 20px rgba(59, 130, 246, 0.15), 0 0 60px rgba(59, 130, 246, 0.05);
+/* Staggered children animation */
+.stagger-children > * {
+  opacity: 0;
+  animation: fade-up 0.4s ease-out forwards;
+}
+.stagger-children > *:nth-child(1) { animation-delay: 0.05s; }
+.stagger-children > *:nth-child(2) { animation-delay: 0.1s; }
+.stagger-children > *:nth-child(3) { animation-delay: 0.15s; }
+.stagger-children > *:nth-child(4) { animation-delay: 0.2s; }
+.stagger-children > *:nth-child(5) { animation-delay: 0.25s; }
+.stagger-children > *:nth-child(6) { animation-delay: 0.3s; }
+
+/* Activity feed slide-in */
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.animate-slide-in {
+  animation: slide-in-right 0.3s ease-out forwards;
 }
 
-.glow-violet {
-  box-shadow: 0 0 20px rgba(139, 92, 246, 0.15), 0 0 60px rgba(139, 92, 246, 0.05);
+/* Heartbeat line pulse (for the logo) */
+@keyframes heartbeat-line {
+  0%, 100% { transform: scaleY(1); }
+  15% { transform: scaleY(1.6); }
+  30% { transform: scaleY(0.8); }
+  45% { transform: scaleY(1.3); }
+}
+.heartbeat-icon {
+  animation: heartbeat-line 2s ease-in-out infinite;
 }
 
-/* Custom scrollbar for sidebar */
-.sidebar-scroll::-webkit-scrollbar {
-  width: 4px;
-}
-.sidebar-scroll::-webkit-scrollbar-track {
-  background: transparent;
-}
-.sidebar-scroll::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.1);
-  border-radius: 2px;
-}
-.sidebar-scroll::-webkit-scrollbar-thumb:hover {
-  background: rgba(255,255,255,0.2);
-}
+/* Custom scrollbar */
+.sidebar-scroll::-webkit-scrollbar { width: 4px; }
+.sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+.sidebar-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+.sidebar-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }

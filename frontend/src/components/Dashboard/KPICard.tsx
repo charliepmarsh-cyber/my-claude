@@ -1,14 +1,20 @@
 import type { ReactNode } from 'react';
 import { TrendingUp, TrendingDown } from 'lucide-react';
+import AnimatedCounter from './AnimatedCounter';
 
 interface KPICardProps {
   title: string;
   value: string;
+  rawValue?: number;
+  prefix?: string;
+  suffix?: string;
+  decimals?: number;
   subtitle?: string;
   icon: ReactNode;
   color: string;
   trend?: { value: number; direction: 'up' | 'down' };
   sparkline?: number[];
+  breathing?: boolean;
 }
 
 function Sparkline({ data, color = '#3b82f6' }: { data: number[]; color?: string }) {
@@ -28,16 +34,22 @@ function Sparkline({ data, color = '#3b82f6' }: { data: number[]; color?: string
   );
 }
 
-export default function KPICard({ title, value, subtitle, icon, color, trend, sparkline }: KPICardProps) {
+export default function KPICard({ title, value, rawValue, prefix, suffix, decimals, subtitle, icon, color, trend, sparkline, breathing }: KPICardProps) {
   return (
-    <div className="glass rounded-2xl p-4 hover:bg-white/75 transition-all duration-300 group">
+    <div className={`glass rounded-2xl p-4 hover:bg-white/75 transition-all duration-300 group hover:scale-[1.02] ${breathing ? 'glass-breathe' : ''}`}>
       <div className="flex items-start justify-between mb-2">
         <p className="text-[11px] font-medium text-gray-500 uppercase tracking-wide">{title}</p>
         <div className={`p-1.5 rounded-xl bg-gradient-to-br ${color} opacity-80 group-hover:opacity-100 transition-opacity`}>
           {icon}
         </div>
       </div>
-      <p className="text-xl font-bold text-gray-900 leading-tight">{value}</p>
+      <p className="text-xl font-bold text-gray-900 leading-tight">
+        {rawValue !== undefined ? (
+          <AnimatedCounter value={rawValue} prefix={prefix} suffix={suffix} decimals={decimals} />
+        ) : (
+          value
+        )}
+      </p>
       <div className="flex items-center justify-between mt-1.5">
         <div className="flex items-center gap-1.5">
           {trend && (
