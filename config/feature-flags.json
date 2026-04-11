@@ -1,0 +1,29 @@
+{
+  "starter": {
+    "pages": ["dashboard", "channels"],
+    "ai_assistant": false,
+    "ai_referrals": false,
+    "attribution": false,
+    "sku_analytics": false,
+    "max_channels": 2,
+    "data_retention_days": 90
+  },
+  "growth": {
+    "pages": ["dashboard", "channels", "products", "attribution"],
+    "ai_assistant": "limited",
+    "ai_referrals": false,
+    "attribution": true,
+    "sku_analytics": true,
+    "max_channels": 4,
+    "data_retention_days": 365
+  },
+  "enterprise": {
+    "pages": ["dashboard", "channels", "products", "attribution", "ai-referrals", "ai-assistant"],
+    "ai_assistant": "full",
+    "ai_referrals": true,
+    "attribution": true,
+    "sku_analytics": true,
+    "max_channels": -1,
+    "data_retention_days": -1
+  }
+}

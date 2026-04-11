@@ -1,0 +1,81 @@
+{
+  "name": "PulseCommerce - Attribution Engine",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "api/attribution",
+        "responseMode": "responseNode"
+      },
+      "id": "webhook-attribution",
+      "name": "Attribution Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [250, 300],
+      "webhookId": "attribution"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT v.id, v.visitor_id, v.first_seen, v.last_seen FROM visitors v WHERE v.tenant_id = {{ $json.body.tenant_id }} AND (v.visitor_id = '{{ $json.body.customer_id }}' OR EXISTS (SELECT 1 FROM touchpoints t WHERE t.visitor_id = v.id AND t.metadata->>'email' = '{{ $json.body.customer_email }}'))"
+      },
+      "id": "find-visitor",
+      "name": "Find Visitor Record",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.3,
+      "position": [470, 300],
+      "credentials": { "postgres": { "id": "1", "name": "PulseCommerce DB" } }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT event_type, page_title, source, medium, campaign, referrer, device, timestamp FROM touchpoints WHERE visitor_id = {{ $json.id }} AND tenant_id = {{ $json.body.tenant_id }} ORDER BY timestamp ASC"
+      },
+      "id": "get-touchpoints",
+      "name": "Get All Touchpoints",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.3,
+      "position": [690, 300],
+      "credentials": { "postgres": { "id": "1", "name": "PulseCommerce DB" } }
+    },
+    {
+      "parameters": {
+        "jsCode": "const touchpoints = $input.all().map(i => i.json);\nif (!touchpoints.length) return { json: { error: 'No touchpoints found' } };\n\nconst firstTouch = touchpoints[0];\nconst lastTouch = touchpoints[touchpoints.length - 1];\n\nconst timeToConvert = Math.round((new Date(lastTouch.timestamp) - new Date(firstTouch.timestamp)) / 60000);\n\nconst channelsTouched = [...new Set(touchpoints.filter(t => t.source).map(t => {\n  if (t.medium === 'ai_referral') return `${t.source} (AI)`;\n  if (t.medium === 'email') return `${t.source} Email`;\n  return `${t.source} (${t.medium || 'direct'})`;\n}))];\n\nreturn {\n  json: {\n    journey: touchpoints,\n    first_touch: { source: firstTouch.source, medium: firstTouch.medium },\n    time_to_convert_minutes: timeToConvert,\n    total_touchpoints: touchpoints.length,\n    channels_touched: channelsTouched,\n    converted: touchpoints.some(t => t.event_type === 'purchase')\n  }\n};"
+      },
+      "id": "build-journey",
+      "name": "Build Journey Timeline",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [910, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}"
+      },
+      "id": "respond",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1130, 300]
+    },
+    {
+      "parameters": {
+        "content": "## Attribution Engine\n\nWebhook trigger on new order or API call.\n1. Receives tenant_id + order data\n2. Finds visitor by email/customer_id\n3. Retrieves all touchpoints ordered by timestamp\n4. Builds journey: First touch -> ... -> Purchase\n5. Calculates time_to_convert, channels touched\n6. First-touch attribution model"
+      },
+      "id": "sticky-note",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [250, 100]
+    }
+  ],
+  "connections": {
+    "Attribution Trigger": { "main": [[{ "node": "Find Visitor Record", "type": "main", "index": 0 }]] },
+    "Find Visitor Record": { "main": [[{ "node": "Get All Touchpoints", "type": "main", "index": 0 }]] },
+    "Get All Touchpoints": { "main": [[{ "node": "Build Journey Timeline", "type": "main", "index": 0 }]] },
+    "Build Journey Timeline": { "main": [[{ "node": "Respond", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "PulseCommerce" }, { "name": "Attribution" }]
+}

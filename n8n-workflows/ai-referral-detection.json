@@ -1,0 +1,79 @@
+{
+  "name": "PulseCommerce - AI Referral Detection",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": { "interval": [{ "field": "minutes", "minutesInterval": 15 }] }
+      },
+      "id": "cron-trigger",
+      "name": "Every 15 Minutes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id as tenant_id FROM tenants WHERE plan IN ('enterprise', 'scale')"
+      },
+      "id": "get-tenants",
+      "name": "Get AI-Enabled Tenants",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.3,
+      "position": [470, 300],
+      "credentials": { "postgres": { "id": "1", "name": "PulseCommerce DB" } }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT t.id as touchpoint_id, t.tenant_id, t.visitor_id, t.referrer, t.timestamp, t.page_url, t.device FROM touchpoints t LEFT JOIN ai_referrals ar ON ar.tenant_id = t.tenant_id AND ar.visitor_id = t.visitor_id AND ar.timestamp = t.timestamp WHERE t.tenant_id = {{ $json.tenant_id }} AND t.referrer IS NOT NULL AND ar.id IS NULL AND (t.referrer ILIKE '%chatgpt.com%' OR t.referrer ILIKE '%chat.openai.com%' OR t.referrer ILIKE '%perplexity.ai%' OR t.referrer ILIKE '%claude.ai%' OR t.referrer ILIKE '%anthropic.com%' OR t.referrer ILIKE '%gemini.google.com%' OR t.referrer ILIKE '%bard.google.com%' OR t.referrer ILIKE '%copilot.microsoft.com%' OR t.referrer ILIKE '%bing.com/chat%' OR t.medium = 'ai_referral')"
+      },
+      "id": "find-ai-referrals",
+      "name": "Find AI Referral Touchpoints",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.3,
+      "position": [690, 300],
+      "credentials": { "postgres": { "id": "1", "name": "PulseCommerce DB" } }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nreturn items.map(item => {\n  const referrer = (item.json.referrer || '').toLowerCase();\n  let ai_source = 'unknown';\n  \n  if (referrer.includes('chatgpt.com') || referrer.includes('chat.openai.com')) {\n    ai_source = 'chatgpt';\n  } else if (referrer.includes('perplexity.ai')) {\n    ai_source = 'perplexity';\n  } else if (referrer.includes('claude.ai') || referrer.includes('anthropic.com')) {\n    ai_source = 'claude';\n  } else if (referrer.includes('gemini.google.com') || referrer.includes('bard.google.com')) {\n    ai_source = 'gemini';\n  } else if (referrer.includes('copilot.microsoft.com') || referrer.includes('bing.com/chat')) {\n    ai_source = 'copilot';\n  }\n  \n  return {\n    json: {\n      ...item.json,\n      ai_source\n    }\n  };\n});"
+      },
+      "id": "classify-source",
+      "name": "Classify AI Source",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [910, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO ai_referrals (tenant_id, visitor_id, ai_source, referrer_url, landing_page, device, timestamp) VALUES ({{ $json.tenant_id }}, {{ $json.visitor_id }}, '{{ $json.ai_source }}', '{{ $json.referrer }}', '{{ $json.page_url }}', '{{ $json.device }}', '{{ $json.timestamp }}') ON CONFLICT DO NOTHING"
+      },
+      "id": "insert-referral",
+      "name": "Insert AI Referral",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.3,
+      "position": [1130, 300],
+      "credentials": { "postgres": { "id": "1", "name": "PulseCommerce DB" } }
+    },
+    {
+      "parameters": {
+        "content": "## AI Referral Detection\n\nDetects visitors arriving from AI sources:\n- ChatGPT (chatgpt.com, chat.openai.com)\n- Perplexity (perplexity.ai)\n- Claude (claude.ai, anthropic.com)\n- Gemini (gemini.google.com, bard.google.com)\n- Copilot (copilot.microsoft.com, bing.com/chat)\n\nAlso checks UTM medium = 'ai_referral'.\nLinks to orders if visitor converted."
+      },
+      "id": "sticky-note",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [250, 100]
+    }
+  ],
+  "connections": {
+    "Every 15 Minutes": { "main": [[{ "node": "Get AI-Enabled Tenants", "type": "main", "index": 0 }]] },
+    "Get AI-Enabled Tenants": { "main": [[{ "node": "Find AI Referral Touchpoints", "type": "main", "index": 0 }]] },
+    "Find AI Referral Touchpoints": { "main": [[{ "node": "Classify AI Source", "type": "main", "index": 0 }]] },
+    "Classify AI Source": { "main": [[{ "node": "Insert AI Referral", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "PulseCommerce" }, { "name": "AI Referrals" }]
+}

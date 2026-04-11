@@ -1,0 +1,9 @@
+{
+  "default": {
+    "appName": "PulseCommerce",
+    "logoPath": "/assets/pulsecommerce-logo.svg",
+    "primaryColor": "#3b82f6",
+    "sidebarColor": "#1a1f36",
+    "favicon": "/assets/favicon.ico"
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "name": "PulseCommerce - Tenant Onboarding",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "api/onboard",
+        "responseMode": "responseNode"
+      },
+      "id": "webhook-onboard",
+      "name": "POST /api/onboard",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [250, 300],
+      "webhookId": "onboard"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO tenants (name, slug, plan, deployment_type, api_keys, config) VALUES ('{{ $json.body.brand_name }}', '{{ $json.body.slug }}', '{{ $json.body.plan }}', '{{ $json.body.deployment_type }}', '{{ JSON.stringify($json.body.api_keys) }}'::jsonb, '{\"currency\": \"GBP\"}'::jsonb) RETURNING id"
+      },
+      "id": "create-tenant",
+      "name": "Create Tenant",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.3,
+      "position": [470, 300],
+      "credentials": { "postgres": { "id": "1", "name": "PulseCommerce DB" } }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO users (tenant_id, email, password_hash, name, role) VALUES ({{ $json.id }}, '{{ $('POST /api/onboard').item.json.body.admin_email }}', '$2b$10$placeholder', '{{ $('POST /api/onboard').item.json.body.admin_name }}', 'admin') RETURNING id, email"
+      },
+      "id": "create-user",
+      "name": "Create Admin User",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.3,
+      "position": [690, 300],
+      "credentials": { "postgres": { "id": "1", "name": "PulseCommerce DB" } }
+    },
+    {
+      "parameters": {
+        "jsCode": "const tenantId = $('Create Tenant').item.json.id;\nconst channels = $('POST /api/onboard').item.json.body.channels || ['shopify'];\n\nreturn channels.map(ch => ({\n  json: {\n    tenant_id: tenantId,\n    name: ch,\n    status: 'connected'\n  }\n}));"
+      },
+      "id": "prepare-channels",
+      "name": "Prepare Channel Records",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [910, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO channels (tenant_id, name, status) VALUES ({{ $json.tenant_id }}, '{{ $json.name }}', '{{ $json.status }}')"
+      },
+      "id": "create-channels",
+      "name": "Create Channels",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.3,
+      "position": [1130, 300],
+      "credentials": { "postgres": { "id": "1", "name": "PulseCommerce DB" } }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ success: true, tenant_id: $('Create Tenant').item.json.id, dashboard_url: 'http://localhost:3000', login_email: $('Create Admin User').item.json.email }) }}"
+      },
+      "id": "respond",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1350, 300]
+    },
+    {
+      "parameters": {
+        "content": "## Tenant Onboarding\n\nPOST /api/onboard\n1. Creates tenant record\n2. Creates admin user\n3. Sets up channel records\n4. Triggers initial data sync\n5. Returns dashboard URL + credentials"
+      },
+      "id": "sticky-note",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [250, 100]
+    }
+  ],
+  "connections": {
+    "POST /api/onboard": { "main": [[{ "node": "Create Tenant", "type": "main", "index": 0 }]] },
+    "Create Tenant": { "main": [[{ "node": "Create Admin User", "type": "main", "index": 0 }]] },
+    "Create Admin User": { "main": [[{ "node": "Prepare Channel Records", "type": "main", "index": 0 }]] },
+    "Prepare Channel Records": { "main": [[{ "node": "Create Channels", "type": "main", "index": 0 }]] },
+    "Create Channels": { "main": [[{ "node": "Respond", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "PulseCommerce" }, { "name": "Onboarding" }]
+}

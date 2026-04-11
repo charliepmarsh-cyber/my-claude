@@ -1,0 +1,124 @@
+{
+  "name": "PulseCommerce - AI Assistant",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "api/ai-chat",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-chat",
+      "name": "POST /api/ai-chat",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [250, 300],
+      "webhookId": "ai-chat"
+    },
+    {
+      "parameters": {
+        "jsCode": "const question = $json.body.question.toLowerCase();\nlet context_type = 'general';\n\nif (question.includes('revenue') || question.includes('sales') || question.includes('order')) {\n  context_type = 'revenue';\n} else if (question.includes('product') || question.includes('sku') || question.includes('selling')) {\n  context_type = 'product';\n} else if (question.includes('ad') || question.includes('google') || question.includes('roas') || question.includes('cpc')) {\n  context_type = 'ads';\n} else if (question.includes('email') || question.includes('mailchimp') || question.includes('campaign') || question.includes('subscriber')) {\n  context_type = 'email';\n} else if (question.includes('ai') || question.includes('chatgpt') || question.includes('perplexity') || question.includes('referral')) {\n  context_type = 'ai_traffic';\n}\n\nreturn {\n  json: {\n    tenant_id: $json.body.tenant_id,\n    question: $json.body.question,\n    context_type\n  }\n};"
+      },
+      "id": "classify-intent",
+      "name": "Classify Question Intent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [470, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n  (SELECT json_build_object('total_revenue', COALESCE(SUM(revenue),0), 'total_orders', COUNT(*), 'aov', ROUND(AVG(revenue),2)) FROM orders WHERE tenant_id = {{ $json.tenant_id }} AND order_date >= NOW() - INTERVAL '30 days') as revenue_summary,\n  (SELECT json_agg(row_to_json(p)) FROM (SELECT pr.name, pm.sales, pm.revenue, pm.views FROM product_metrics pm JOIN products pr ON pr.id = pm.product_id WHERE pm.tenant_id = {{ $json.tenant_id }} ORDER BY pm.revenue DESC LIMIT 10) p) as top_products,\n  (SELECT row_to_json(g) FROM (SELECT clicks, impressions, spend, revenue, conversions FROM google_ads_metrics WHERE tenant_id = {{ $json.tenant_id }} ORDER BY date DESC LIMIT 1) g) as google_ads,\n  (SELECT json_agg(row_to_json(e)) FROM (SELECT campaign_name, open_rate, click_rate, revenue FROM email_metrics WHERE tenant_id = {{ $json.tenant_id }} ORDER BY date DESC LIMIT 5) e) as email_campaigns,\n  (SELECT json_build_object('total_orders', COUNT(*), 'total_revenue', COALESCE(SUM(revenue),0), 'by_source', json_agg(json_build_object('source', ai_source, 'orders', cnt, 'revenue', rev))) FROM (SELECT ai_source, COUNT(*) as cnt, SUM(revenue) as rev FROM ai_referrals WHERE tenant_id = {{ $json.tenant_id }} AND converted = true GROUP BY ai_source) sub) as ai_referrals"
+      },
+      "id": "load-context",
+      "name": "Load Data Context",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.3,
+      "position": [690, 300],
+      "credentials": { "postgres": { "id": "1", "name": "PulseCommerce DB" } }
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $json;\nconst question = $('Classify Question Intent').item.json.question;\nconst contextType = $('Classify Question Intent').item.json.context_type;\n\nconst systemPrompt = `You are PulseCommerce AI Analyst — a data-aware assistant for an e-commerce brand.\nYou have access to the following live data context:\n\nRevenue Summary: ${JSON.stringify(data.revenue_summary)}\nTop Products: ${JSON.stringify(data.top_products)}\nGoogle Ads: ${JSON.stringify(data.google_ads)}\nEmail Campaigns: ${JSON.stringify(data.email_campaigns)}\nAI Referrals: ${JSON.stringify(data.ai_referrals)}\n\nAnswer the user's question using ONLY the data provided. Be specific with numbers.\nFormat currency as GBP X,XXX.XX. Highlight key insights and actionable recommendations.\nKeep responses concise but data-rich.`;\n\nreturn {\n  json: {\n    system_prompt: systemPrompt,\n    question,\n    context_type: contextType,\n    context_modules: {\n      revenue: !!data.revenue_summary,\n      products: !!data.top_products,\n      google_ads: !!data.google_ads,\n      email: !!data.email_campaigns,\n      ai_referrals: !!data.ai_referrals\n    }\n  }\n};"
+      },
+      "id": "build-prompt",
+      "name": "Build AI Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [910, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key", "value": "={{ $env.ANTHROPIC_API_KEY }}" },
+            { "name": "anthropic-version", "value": "2023-06-01" },
+            { "name": "content-type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "model", "value": "claude-sonnet-4-20250514" },
+            { "name": "max_tokens", "value": "1024" },
+            { "name": "system", "value": "={{ $json.system_prompt }}" },
+            { "name": "messages", "value": "={{ JSON.stringify([{role: 'user', content: $json.question}]) }}" }
+          ]
+        },
+        "options": { "timeout": 30000 }
+      },
+      "id": "call-claude",
+      "name": "Call Claude API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1130, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $json;\nconst contextModules = $('Build AI Prompt').item.json.context_modules;\n\nreturn {\n  json: {\n    answer: response.content?.[0]?.text || 'Unable to generate response.',\n    context_loaded: contextModules,\n    model: response.model,\n    usage: response.usage\n  }\n};"
+      },
+      "id": "format-response",
+      "name": "Format Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1350, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseHeaders": { "entries": [{ "name": "Access-Control-Allow-Origin", "value": "*" }] }
+        }
+      },
+      "id": "respond",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1570, 300]
+    },
+    {
+      "parameters": {
+        "content": "## AI Assistant Workflow\n\nPOST /api/ai-chat with {tenant_id, question}\n\n1. Classifies question intent (revenue, product, ads, email, AI traffic)\n2. Loads relevant data context from PostgreSQL\n3. Builds system prompt with live data\n4. Calls Claude API (claude-sonnet-4-20250514)\n5. Returns answer with context metadata"
+      },
+      "id": "sticky-note",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [250, 100]
+    }
+  ],
+  "connections": {
+    "POST /api/ai-chat": { "main": [[{ "node": "Classify Question Intent", "type": "main", "index": 0 }]] },
+    "Classify Question Intent": { "main": [[{ "node": "Load Data Context", "type": "main", "index": 0 }]] },
+    "Load Data Context": { "main": [[{ "node": "Build AI Prompt", "type": "main", "index": 0 }]] },
+    "Build AI Prompt": { "main": [[{ "node": "Call Claude API", "type": "main", "index": 0 }]] },
+    "Call Claude API": { "main": [[{ "node": "Format Response", "type": "main", "index": 0 }]] },
+    "Format Response": { "main": [[{ "node": "Respond", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "PulseCommerce" }, { "name": "AI" }]
+}

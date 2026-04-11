@@ -1,0 +1,92 @@
+{
+  "name": "PulseCommerce - Mailchimp Ingestion",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": { "interval": [{ "field": "hours", "hoursInterval": 6 }] }
+      },
+      "id": "cron-trigger",
+      "name": "Every 6 Hours",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT t.id as tenant_id, t.api_keys->'mailchimp' as mc_config FROM tenants t JOIN channels c ON c.tenant_id = t.id WHERE c.name = 'mailchimp' AND c.status = 'connected'"
+      },
+      "id": "get-tenants",
+      "name": "Get Mailchimp Tenants",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.3,
+      "position": [470, 300],
+      "credentials": { "postgres": { "id": "1", "name": "PulseCommerce DB" } }
+    },
+    {
+      "parameters": {
+        "jsCode": "const config = JSON.parse($json.mc_config || '{}');\nconst apiKey = config.api_key || '';\nconst dc = apiKey.split('-').pop() || 'us1';\nconst listId = config.list_id || '';\n\nreturn {\n  json: {\n    tenant_id: $json.tenant_id,\n    api_key: apiKey,\n    dc: dc,\n    list_id: listId,\n    lists_url: `https://${dc}.api.mailchimp.com/3.0/lists/${listId}`,\n    campaigns_url: `https://${dc}.api.mailchimp.com/3.0/campaigns?count=10&sort_field=send_time&sort_dir=DESC`\n  }\n};"
+      },
+      "id": "prepare-urls",
+      "name": "Prepare Mailchimp URLs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [690, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.campaigns_url }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "options": { "timeout": 15000 }
+      },
+      "id": "fetch-campaigns",
+      "name": "Fetch Campaigns",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [910, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const campaigns = $json.campaigns || [];\nconst tenantId = $('Prepare Mailchimp URLs').item.json.tenant_id;\n\nreturn campaigns.map(c => ({\n  json: {\n    tenant_id: tenantId,\n    date: c.send_time?.split('T')[0] || new Date().toISOString().split('T')[0],\n    campaign_name: c.settings?.subject_line || c.settings?.title || 'Unknown',\n    campaign_id: c.id,\n    subscribers: c.emails_sent || 0,\n    open_rate: c.report_summary?.open_rate || 0,\n    click_rate: c.report_summary?.click_rate || 0,\n    revenue: c.report_summary?.ecommerce?.total_revenue || 0,\n    new_subs: 0\n  }\n}));"
+      },
+      "id": "process-campaigns",
+      "name": "Process Campaigns",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1130, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO email_metrics (tenant_id, date, campaign_name, campaign_id, subscribers, open_rate, click_rate, revenue, new_subs) VALUES ({{ $json.tenant_id }}, '{{ $json.date }}', '{{ $json.campaign_name }}', '{{ $json.campaign_id }}', {{ $json.subscribers }}, {{ $json.open_rate }}, {{ $json.click_rate }}, {{ $json.revenue }}, {{ $json.new_subs }}) ON CONFLICT DO NOTHING"
+      },
+      "id": "upsert-email",
+      "name": "Upsert Email Metrics",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.3,
+      "position": [1350, 300],
+      "credentials": { "postgres": { "id": "1", "name": "PulseCommerce DB" } }
+    },
+    {
+      "parameters": {
+        "content": "## Mailchimp Ingestion\n\nRuns every 6 hours.\n1. Gets tenants with Mailchimp connected\n2. Fetches subscriber lists and recent campaigns\n3. Extracts open_rate, click_rate, revenue\n4. Upserts into email_metrics"
+      },
+      "id": "sticky-note",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [250, 100]
+    }
+  ],
+  "connections": {
+    "Every 6 Hours": { "main": [[{ "node": "Get Mailchimp Tenants", "type": "main", "index": 0 }]] },
+    "Get Mailchimp Tenants": { "main": [[{ "node": "Prepare Mailchimp URLs", "type": "main", "index": 0 }]] },
+    "Prepare Mailchimp URLs": { "main": [[{ "node": "Fetch Campaigns", "type": "main", "index": 0 }]] },
+    "Fetch Campaigns": { "main": [[{ "node": "Process Campaigns", "type": "main", "index": 0 }]] },
+    "Process Campaigns": { "main": [[{ "node": "Upsert Email Metrics", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "PulseCommerce" }, { "name": "Ingestion" }]
+}

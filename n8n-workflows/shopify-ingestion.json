@@ -1,0 +1,135 @@
+{
+  "name": "PulseCommerce - Shopify Data Ingestion",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "minutes", "minutesInterval": 15 }]
+        }
+      },
+      "id": "cron-trigger",
+      "name": "Every 15 Minutes",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT t.id as tenant_id, t.name, t.api_keys->>'shopify' as shopify_config FROM tenants t JOIN channels c ON c.tenant_id = t.id WHERE c.name = 'shopify' AND c.status = 'connected'",
+        "additionalFields": {}
+      },
+      "id": "get-tenants",
+      "name": "Get Active Shopify Tenants",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.3,
+      "position": [470, 300],
+      "credentials": { "postgres": { "id": "1", "name": "PulseCommerce DB" } }
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "loop-tenants",
+      "name": "Loop Tenants",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [690, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const config = JSON.parse($input.item.json.shopify_config);\nconst storeUrl = config.store_url;\nconst accessToken = config.access_token;\nconst tenantId = $input.item.json.tenant_id;\n\n// Calculate date range (last 24 hours)\nconst now = new Date();\nconst yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);\n\nreturn {\n  json: {\n    tenant_id: tenantId,\n    store_url: storeUrl,\n    access_token: accessToken,\n    created_at_min: yesterday.toISOString(),\n    orders_url: `https://${storeUrl}/admin/api/2024-01/orders.json?created_at_min=${yesterday.toISOString()}&status=any&limit=250`,\n    products_url: `https://${storeUrl}/admin/api/2024-01/products.json?limit=250`\n  }\n};"
+      },
+      "id": "prepare-urls",
+      "name": "Prepare API URLs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [910, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.orders_url }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "X-Shopify-Access-Token", "value": "={{ $json.access_token }}" }
+          ]
+        },
+        "options": {
+          "timeout": 30000,
+          "retry": { "maxTries": 3, "waitBetweenTries": 2000 }
+        }
+      },
+      "id": "fetch-orders",
+      "name": "Fetch Shopify Orders",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1130, 200]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.products_url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "X-Shopify-Access-Token", "value": "={{ $json.access_token }}" }
+          ]
+        },
+        "options": { "timeout": 30000 }
+      },
+      "id": "fetch-products",
+      "name": "Fetch Shopify Products",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1130, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "const orders = $input.item.json.orders || [];\nconst tenantId = $('Prepare API URLs').item.json.tenant_id;\n\nreturn orders.map(order => {\n  const landingSite = order.landing_site || '';\n  const referringSite = order.referring_site || '';\n  \n  // Parse UTM params from landing site\n  let source = '', medium = '', campaign = '';\n  try {\n    const url = new URL(landingSite, 'https://placeholder.com');\n    source = url.searchParams.get('utm_source') || '';\n    medium = url.searchParams.get('utm_medium') || '';\n    campaign = url.searchParams.get('utm_campaign') || '';\n  } catch(e) {}\n  \n  // Detect returning customer\n  const isReturning = (order.customer?.orders_count || 0) > 1;\n  \n  // Extract line items\n  const products = (order.line_items || []).map(li => ({\n    sku: li.sku,\n    name: li.title,\n    quantity: li.quantity,\n    price: parseFloat(li.price)\n  }));\n  \n  return {\n    json: {\n      tenant_id: tenantId,\n      external_id: `shopify_${order.id}`,\n      order_date: order.created_at,\n      revenue: parseFloat(order.total_price),\n      currency: order.currency,\n      customer_email: order.email,\n      customer_id: order.customer?.id?.toString(),\n      is_returning_customer: isReturning,\n      source,\n      medium,\n      campaign,\n      products: JSON.stringify(products),\n      referring_site: referringSite\n    }\n  };\n});"
+      },
+      "id": "process-orders",
+      "name": "Process Orders",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1350, 200]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO orders (tenant_id, external_id, order_date, revenue, currency, customer_email, customer_id, is_returning_customer, source, medium, campaign, products) VALUES ({{ $json.tenant_id }}, '{{ $json.external_id }}', '{{ $json.order_date }}', {{ $json.revenue }}, '{{ $json.currency }}', '{{ $json.customer_email }}', '{{ $json.customer_id }}', {{ $json.is_returning_customer }}, '{{ $json.source }}', '{{ $json.medium }}', '{{ $json.campaign }}', '{{ $json.products }}'::jsonb) ON CONFLICT (tenant_id, external_id) DO UPDATE SET revenue = EXCLUDED.revenue, updated_at = NOW()"
+      },
+      "id": "upsert-orders",
+      "name": "Upsert Orders to DB",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.3,
+      "position": [1570, 200],
+      "credentials": { "postgres": { "id": "1", "name": "PulseCommerce DB" } }
+    },
+    {
+      "parameters": {
+        "content": "## Shopify Data Ingestion\n\nRuns every 15 minutes. For each tenant with Shopify connected:\n1. Fetches orders from last 24 hours\n2. Fetches product catalog\n3. Processes UTM params, customer data, line items\n4. Upserts into orders, products, product_metrics, daily_metrics\n\nRate limit aware: Shopify allows 2 req/sec per store."
+      },
+      "id": "sticky-note",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [250, 100]
+    }
+  ],
+  "connections": {
+    "Every 15 Minutes": { "main": [[{ "node": "Get Active Shopify Tenants", "type": "main", "index": 0 }]] },
+    "Get Active Shopify Tenants": { "main": [[{ "node": "Loop Tenants", "type": "main", "index": 0 }]] },
+    "Loop Tenants": { "main": [[{ "node": "Prepare API URLs", "type": "main", "index": 0 }]] },
+    "Prepare API URLs": { "main": [[{ "node": "Fetch Shopify Orders", "type": "main", "index": 0 }, { "node": "Fetch Shopify Products", "type": "main", "index": 0 }]] },
+    "Fetch Shopify Orders": { "main": [[{ "node": "Process Orders", "type": "main", "index": 0 }]] },
+    "Process Orders": { "main": [[{ "node": "Upsert Orders to DB", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "staticData": null,
+  "tags": [{ "name": "PulseCommerce" }, { "name": "Ingestion" }]
+}

@@ -1,0 +1,66 @@
+{
+  "name": "PulseCommerce - Google Ads Ingestion",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": { "interval": [{ "field": "cronExpression", "expression": "0 0 * * *" }] }
+      },
+      "id": "cron-trigger",
+      "name": "Daily at Midnight",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT t.id as tenant_id, t.api_keys->'google_ads' as gads_config FROM tenants t JOIN channels c ON c.tenant_id = t.id WHERE c.name = 'google_ads' AND c.status = 'connected'"
+      },
+      "id": "get-tenants",
+      "name": "Get Google Ads Tenants",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.3,
+      "position": [470, 300],
+      "credentials": { "postgres": { "id": "1", "name": "PulseCommerce DB" } }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Google Ads API call would go here\n// For each tenant, call Google Ads API with their credentials\n// Extract: clicks, impressions, cost_micros, conversions, conversion_value\n// Calculate: CTR = clicks/impressions, CPC = spend/clicks, ROAS = revenue/spend\n\nconst tenantId = $json.tenant_id;\nconst config = JSON.parse($json.gads_config || '{}');\n\n// Placeholder for actual Google Ads API integration\nreturn {\n  json: {\n    tenant_id: tenantId,\n    date: new Date().toISOString().split('T')[0],\n    clicks: 0,\n    impressions: 0,\n    spend: 0,\n    revenue: 0,\n    conversions: 0\n  }\n};"
+      },
+      "id": "fetch-gads",
+      "name": "Fetch Google Ads Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [690, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO google_ads_metrics (tenant_id, date, clicks, impressions, spend, revenue, conversions) VALUES ({{ $json.tenant_id }}, '{{ $json.date }}', {{ $json.clicks }}, {{ $json.impressions }}, {{ $json.spend }}, {{ $json.revenue }}, {{ $json.conversions }}) ON CONFLICT (tenant_id, date) DO UPDATE SET clicks = EXCLUDED.clicks, impressions = EXCLUDED.impressions, spend = EXCLUDED.spend, revenue = EXCLUDED.revenue, conversions = EXCLUDED.conversions"
+      },
+      "id": "upsert-gads",
+      "name": "Upsert Google Ads Metrics",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.3,
+      "position": [910, 300],
+      "credentials": { "postgres": { "id": "1", "name": "PulseCommerce DB" } }
+    },
+    {
+      "parameters": {
+        "content": "## Google Ads Ingestion\n\nRuns daily at midnight.\nFor each tenant with Google Ads connected:\n1. Calls Google Ads API for campaign performance\n2. Extracts clicks, impressions, spend, conversions\n3. Calculates CTR, CPC, ROAS\n4. Upserts into google_ads_metrics"
+      },
+      "id": "sticky-note",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [250, 100]
+    }
+  ],
+  "connections": {
+    "Daily at Midnight": { "main": [[{ "node": "Get Google Ads Tenants", "type": "main", "index": 0 }]] },
+    "Get Google Ads Tenants": { "main": [[{ "node": "Fetch Google Ads Data", "type": "main", "index": 0 }]] },
+    "Fetch Google Ads Data": { "main": [[{ "node": "Upsert Google Ads Metrics", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "PulseCommerce" }, { "name": "Ingestion" }]
+}
