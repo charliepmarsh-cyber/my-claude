@@ -19,45 +19,58 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
-        <div className="flex items-center justify-center gap-2 mb-8">
-          <Activity className="w-8 h-8 text-blue-500" />
-          <h1 className="text-2xl font-bold text-gray-900">PulseCommerce</h1>
+    <div className="min-h-screen bg-gradient-to-br from-[#1a1f36] via-[#1e2545] to-[#141831] flex items-center justify-center p-4">
+      <div className="w-full max-w-sm">
+        {/* Logo */}
+        <div className="flex items-center justify-center gap-2.5 mb-8">
+          <div className="relative">
+            <div className="absolute inset-0 bg-blue-500/40 blur-xl rounded-full" />
+            <Activity className="w-9 h-9 text-blue-400 relative" />
+          </div>
+          <span className="text-2xl font-bold pulse-gradient-text">PulseCommerce</span>
         </div>
-        <p className="text-center text-gray-500 mb-6">Sign in to your analytics dashboard</p>
 
-        {error && <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4 text-sm">{error}</div>}
+        {/* Card */}
+        <div className="bg-white rounded-2xl shadow-2xl p-7">
+          <h2 className="text-lg font-semibold text-gray-900 text-center">Welcome back</h2>
+          <p className="text-sm text-gray-400 text-center mt-1 mb-6">Sign in to your analytics dashboard</p>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-            />
-          </div>
-          <button
-            type="submit"
-            className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition font-medium"
-          >
-            Sign In
-          </button>
-        </form>
+          {error && <div className="bg-red-50 text-red-600 p-2.5 rounded-lg mb-4 text-xs">{error}</div>}
 
-        <p className="text-xs text-gray-400 text-center mt-6">
-          Demo: demo@pulsecommerce.io / demo123
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition bg-gray-50 focus:bg-white"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition bg-gray-50 focus:bg-white"
+              />
+            </div>
+            <button
+              type="submit"
+              className="w-full py-2.5 rounded-lg font-medium text-sm text-white pulse-gradient hover:opacity-90 transition-opacity shadow-lg shadow-blue-500/20"
+            >
+              Sign In
+            </button>
+          </form>
+
+          <p className="text-[10px] text-gray-400 text-center mt-5">
+            Demo: demo@pulsecommerce.io / demo123
+          </p>
+        </div>
+
+        <p className="text-[10px] text-gray-500 text-center mt-6">
+          Powered by PulseCommerce &middot; AI-Driven Analytics
         </p>
       </div>
     </div>

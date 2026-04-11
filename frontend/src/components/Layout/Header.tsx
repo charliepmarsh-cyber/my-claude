@@ -9,39 +9,37 @@ export default function Header({ title }: { title: string }) {
   });
 
   return (
-    <header className="flex items-center justify-between py-3 px-6 bg-white border-b border-gray-200">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
-        <p className="text-xs text-gray-400 mt-0.5">{today}</p>
+    <header className="sticky top-0 z-10 flex items-center justify-between h-14 px-6 bg-white/80 backdrop-blur-md border-b border-gray-100">
+      <div className="flex items-baseline gap-3">
+        <h1 className="text-lg font-semibold text-gray-900">{title}</h1>
+        <span className="text-xs text-gray-400 hidden sm:inline">{today}</span>
       </div>
-      <div className="flex items-center gap-4">
-        {/* Date Range Pill */}
-        <button className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-100 transition">
+      <div className="flex items-center gap-2.5">
+        <button className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-50 border border-gray-200 rounded-md text-xs text-gray-500 hover:bg-gray-100 transition">
           Last 30 Days
-          <ChevronDown className="w-3.5 h-3.5" />
+          <ChevronDown className="w-3 h-3" />
         </button>
 
-        {/* Live Visitors */}
-        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-lg">
-          <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-          <Users className="w-3.5 h-3.5 text-emerald-600" />
-          <span className="text-sm font-medium text-emerald-700">{demoData.dashboard.liveVisitors}</span>
+        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-100 rounded-md">
+          <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+          <Users className="w-3 h-3 text-emerald-600" />
+          <span className="text-xs font-semibold text-emerald-700">{demoData.dashboard.liveVisitors}</span>
         </div>
 
-        {/* Notification Bell */}
-        <button className="relative p-2 text-gray-400 hover:text-gray-600 transition">
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
+        <button className="relative p-1.5 text-gray-400 hover:text-gray-600 transition rounded-md hover:bg-gray-50">
+          <Bell className="w-4 h-4" />
+          <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-red-500 rounded-full" />
         </button>
 
-        {/* User */}
-        <div className="flex items-center gap-2.5">
-          <div className="text-right">
-            <p className="text-sm font-medium text-gray-700">{user?.name}</p>
-            <p className="text-[11px] text-gray-400">Winston Demo</p>
+        <div className="w-px h-6 bg-gray-200 mx-0.5" />
+
+        <div className="flex items-center gap-2">
+          <div className="text-right hidden md:block">
+            <p className="text-xs font-medium text-gray-700 leading-tight">{user?.name}</p>
+            <p className="text-[10px] text-gray-400 leading-tight">Winston Demo</p>
           </div>
-          <div className="p-0.5 rounded-full bg-gradient-to-br from-blue-500 to-violet-500">
-            <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-sm font-bold pulse-gradient-text">
+          <div className="p-[1.5px] rounded-full bg-gradient-to-br from-blue-500 to-violet-500">
+            <div className="w-7 h-7 bg-white rounded-full flex items-center justify-center text-xs font-bold pulse-gradient-text">
               {user?.name?.charAt(0) || 'D'}
             </div>
           </div>

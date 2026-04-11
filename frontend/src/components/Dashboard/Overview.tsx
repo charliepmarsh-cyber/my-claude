@@ -8,22 +8,24 @@ export default function Overview() {
   const s = demoData.sparklines;
   const maxVisits = Math.max(...d.topTrafficSources.map(t => t.visits));
 
+  const sourceColors = ['#3b82f6', '#6b7280', '#8b5cf6', '#6366f1', '#10b981', '#ec4899'];
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
         <KPICard
-          title="Total Revenue"
+          title="Revenue"
           value={`£${d.totalRevenue.toLocaleString()}`}
-          icon={<DollarSign className="w-5 h-5 text-emerald-600" />}
+          icon={<DollarSign className="w-4 h-4 text-emerald-600" />}
           color="from-emerald-50 to-emerald-100"
           trend={{ value: 14.2, direction: 'up' }}
           sparkline={s.revenue}
         />
         <KPICard
-          title="Total Orders"
+          title="Orders"
           value={d.totalOrders.toLocaleString()}
-          icon={<ShoppingCart className="w-5 h-5 text-blue-600" />}
+          icon={<ShoppingCart className="w-4 h-4 text-blue-600" />}
           color="from-blue-50 to-blue-100"
           trend={{ value: 8.7, direction: 'up' }}
           sparkline={s.orders}
@@ -31,7 +33,7 @@ export default function Overview() {
         <KPICard
           title="AOV"
           value={`£${d.aov.toFixed(2)}`}
-          icon={<TrendingUp className="w-5 h-5 text-violet-600" />}
+          icon={<TrendingUp className="w-4 h-4 text-violet-600" />}
           color="from-violet-50 to-violet-100"
           trend={{ value: 3.1, direction: 'up' }}
           sparkline={s.aov}
@@ -39,15 +41,15 @@ export default function Overview() {
         <KPICard
           title="Page Views"
           value={d.pageViews.toLocaleString()}
-          icon={<Eye className="w-5 h-5 text-orange-600" />}
+          icon={<Eye className="w-4 h-4 text-orange-600" />}
           color="from-orange-50 to-orange-100"
           trend={{ value: 12.4, direction: 'up' }}
           sparkline={s.pageViews}
         />
         <KPICard
-          title="Conversion Rate"
+          title="Conv. Rate"
           value={`${(d.conversionRate * 100).toFixed(1)}%`}
-          icon={<Percent className="w-5 h-5 text-teal-600" />}
+          icon={<Percent className="w-4 h-4 text-teal-600" />}
           color="from-teal-50 to-teal-100"
           trend={{ value: 5.2, direction: 'up' }}
           sparkline={s.conversion}
@@ -55,7 +57,7 @@ export default function Overview() {
         <KPICard
           title="Returning"
           value={`${(d.returningCustomerRate * 100).toFixed(0)}%`}
-          icon={<UserCheck className="w-5 h-5 text-indigo-600" />}
+          icon={<UserCheck className="w-4 h-4 text-indigo-600" />}
           color="from-indigo-50 to-indigo-100"
           trend={{ value: 2.8, direction: 'up' }}
           sparkline={s.returning}
@@ -63,39 +65,36 @@ export default function Overview() {
       </div>
 
       {/* Revenue Chart + Traffic Sources */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2">
           <RevenueChart data={d.revenueTimeSeries} />
         </div>
-        <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Traffic Sources</h3>
+        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold text-gray-900">Traffic Sources</h3>
             <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-              <span className="text-sm text-gray-500">{d.liveVisitors} live</span>
+              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+              <span className="text-xs text-gray-500">{d.liveVisitors} live</span>
             </div>
           </div>
-          <div className="space-y-3">
-            {d.topTrafficSources.map((src, i) => {
-              const colors = ['bg-blue-500', 'bg-gray-500', 'bg-violet-500', 'bg-indigo-500', 'bg-emerald-500', 'bg-pink-500'];
-              return (
-                <div key={src.source}>
-                  <div className="flex items-center justify-between text-sm mb-1">
-                    <span className="flex items-center gap-2">
-                      <span className={`w-2 h-2 rounded-full ${colors[i % colors.length]}`} />
-                      <span className="text-gray-700">{src.source}</span>
-                    </span>
-                    <span className="text-gray-500 font-medium">{src.visits.toLocaleString()}</span>
-                  </div>
-                  <div className="h-1.5 bg-gray-100 rounded-full">
-                    <div
-                      className={`h-1.5 rounded-full ${colors[i % colors.length]}`}
-                      style={{ width: `${(src.visits / maxVisits) * 100}%` }}
-                    />
-                  </div>
+          <div className="space-y-2.5">
+            {d.topTrafficSources.map((src, i) => (
+              <div key={src.source}>
+                <div className="flex items-center justify-between text-xs mb-0.5">
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: sourceColors[i] }} />
+                    <span className="text-gray-700">{src.source}</span>
+                  </span>
+                  <span className="text-gray-500 font-medium tabular-nums">{src.visits.toLocaleString()}</span>
                 </div>
-              );
-            })}
+                <div className="h-1 bg-gray-100 rounded-full">
+                  <div
+                    className="h-1 rounded-full transition-all duration-500"
+                    style={{ width: `${(src.visits / maxVisits) * 100}%`, backgroundColor: sourceColors[i] }}
+                  />
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>

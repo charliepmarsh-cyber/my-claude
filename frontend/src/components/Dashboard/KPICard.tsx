@@ -12,8 +12,8 @@ interface KPICardProps {
 }
 
 function Sparkline({ data, color = '#3b82f6' }: { data: number[]; color?: string }) {
-  const h = 24;
-  const w = 64;
+  const h = 20;
+  const w = 56;
   const max = Math.max(...data);
   const min = Math.min(...data);
   const range = max - min || 1;
@@ -22,7 +22,7 @@ function Sparkline({ data, color = '#3b82f6' }: { data: number[]; color?: string
     .join(' ');
 
   return (
-    <svg width={w} height={h} className="opacity-60">
+    <svg width={w} height={h} className="opacity-50">
       <polyline fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" points={points} />
     </svg>
   );
@@ -30,27 +30,27 @@ function Sparkline({ data, color = '#3b82f6' }: { data: number[]; color?: string
 
 export default function KPICard({ title, value, subtitle, icon, color, trend, sparkline }: KPICardProps) {
   return (
-    <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <p className="text-sm text-gray-500">{title}</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
-          <div className="flex items-center gap-2 mt-1">
-            {trend && (
-              <span className={`flex items-center gap-0.5 text-xs font-medium ${
-                trend.direction === 'up' ? 'text-emerald-600' : 'text-red-500'
-              }`}>
-                {trend.direction === 'up' ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                {trend.direction === 'up' ? '+' : ''}{trend.value}%
-              </span>
-            )}
-            {subtitle && <p className="text-xs text-gray-400">{subtitle}</p>}
-          </div>
+    <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 group">
+      <div className="flex items-start justify-between mb-2">
+        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">{title}</p>
+        <div className={`p-1.5 rounded-lg bg-gradient-to-br ${color} opacity-80 group-hover:opacity-100 transition-opacity`}>
+          {icon}
         </div>
-        <div className="flex flex-col items-end gap-2">
-          <div className={`p-2.5 rounded-lg bg-gradient-to-br ${color}`}>{icon}</div>
-          {sparkline && <Sparkline data={sparkline} />}
+      </div>
+      <p className="text-xl font-bold text-gray-900 leading-tight">{value}</p>
+      <div className="flex items-center justify-between mt-1.5">
+        <div className="flex items-center gap-1.5">
+          {trend && (
+            <span className={`flex items-center gap-0.5 text-[11px] font-semibold ${
+              trend.direction === 'up' ? 'text-emerald-600' : 'text-red-500'
+            }`}>
+              {trend.direction === 'up' ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+              {trend.direction === 'up' ? '+' : ''}{trend.value}%
+            </span>
+          )}
+          {subtitle && <p className="text-[11px] text-gray-400">{subtitle}</p>}
         </div>
+        {sparkline && <Sparkline data={sparkline} />}
       </div>
     </div>
   );
