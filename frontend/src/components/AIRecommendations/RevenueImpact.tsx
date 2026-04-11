@@ -22,7 +22,7 @@ export default function RevenueImpact() {
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
             <XAxis dataKey="week" tick={{ fontSize: 12, fill: '#9ca3af' }} />
             <YAxis tickFormatter={v => `£${(v / 1000).toFixed(0)}k`} tick={{ fontSize: 11, fill: '#9ca3af' }} />
-            <Tooltip formatter={(v: number) => `£${v.toLocaleString()}`} />
+            <Tooltip formatter={(v) => `£${Number(v).toLocaleString()}`} />
             <Legend />
             <Area type="monotone" dataKey="organic" stroke="#94a3b8" fill="url(#gradOrganic)" strokeWidth={2} name="Without Recs" />
             <Area type="monotone" dataKey="withRecs" stroke="#8b5cf6" fill="url(#gradRecs)" strokeWidth={2} name="With AI Recs" />

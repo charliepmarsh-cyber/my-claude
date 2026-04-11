@@ -111,7 +111,7 @@ export default function ExperimentCard({ exp }: { exp: Experiment }) {
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                   <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#9ca3af' }} />
                   <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} />
-                  <Tooltip formatter={(v: number) => `${v}%`} />
+                  <Tooltip formatter={(v) => `${v}%`} />
                   <Bar dataKey="convRate" radius={[4, 4, 0, 0]}>
                     {exp.variants.map((v, i) => (
                       <rect key={i} fill={v === winner ? '#10b981' : '#94a3b8'} />

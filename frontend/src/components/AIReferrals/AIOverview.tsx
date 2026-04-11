@@ -64,13 +64,13 @@ export default function AIOverview() {
                   cy="50%"
                   innerRadius={40}
                   outerRadius={80}
-                  label={({ source, percent }) => `${source} ${(percent * 100).toFixed(0)}%`}
+                  label={({ name, percent }: any) => `${name} ${(percent * 100).toFixed(0)}%`}
                 >
                   {ai.bySource.map((_, i) => (
                     <Cell key={i} fill={COLORS[i]} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(v: number) => `£${v.toLocaleString()}`} />
+                <Tooltip formatter={(v) => `£${Number(v).toLocaleString()}`} />
                 <Legend />
               </PieChart>
             </ResponsiveContainer>

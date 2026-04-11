@@ -34,7 +34,7 @@ export default function RevenueChart({ data }: Props) {
             />
             <Tooltip
               contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e5e7eb', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
-              formatter={(v: number) => [`£${v.toLocaleString()}`, 'Revenue']}
+              formatter={(v) => [`£${Number(v).toLocaleString()}`, 'Revenue']}
               labelFormatter={v => new Date(v).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}
             />
             <Area type="monotone" dataKey="revenue" stroke="#3b82f6" strokeWidth={2} fill="url(#revenueGrad)" dot={false} />

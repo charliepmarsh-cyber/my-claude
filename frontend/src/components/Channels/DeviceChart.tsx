@@ -18,13 +18,13 @@ export default function DeviceChart() {
               cy="50%"
               innerRadius={50}
               outerRadius={80}
-              label={({ device, percentage }) => `${device} ${percentage}%`}
+              label={({ name, value }: any) => `${name} ${value}%`}
             >
               {demoData.deviceSplit.map((_, i) => (
                 <Cell key={i} fill={COLORS[i]} />
               ))}
             </Pie>
-            <Tooltip formatter={(v: number) => `${v}%`} />
+            <Tooltip formatter={(v) => `${v}%`} />
             <Legend />
           </PieChart>
         </ResponsiveContainer>

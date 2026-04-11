@@ -57,7 +57,7 @@ export default function LiveActivityFeed() {
   const [activities, setActivities] = useState<Activity[]>(() =>
     Array.from({ length: 5 }, (_, i) => ({ ...randomActivity(i), time: `${i + 1}m ago` }))
   );
-  const [nextId, setNextId] = useState(5);
+  const [, setNextId] = useState(5);
 
   useEffect(() => {
     const interval = setInterval(() => {

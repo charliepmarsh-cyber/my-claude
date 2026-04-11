@@ -26,7 +26,7 @@ export default function MarginChart() {
               tickFormatter={v => new Date(v).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
             />
             <YAxis tickFormatter={v => `£${(v / 1000).toFixed(1)}k`} tick={{ fontSize: 11, fill: '#9ca3af' }} />
-            <Tooltip formatter={(v: number) => `£${v.toLocaleString()}`} />
+            <Tooltip formatter={(v) => `£${Number(v).toLocaleString()}`} />
             <Area type="monotone" dataKey="revenue" stroke="#3b82f6" fill="url(#gradRevenue)" strokeWidth={2} name="Revenue" />
             <Area type="monotone" dataKey="cost" stroke="#ef4444" fill="url(#gradCost)" strokeWidth={2} name="Cost" strokeDasharray="4 4" />
           </AreaChart>
