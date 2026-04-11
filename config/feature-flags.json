@@ -1,29 +1,43 @@
 {
   "starter": {
-    "pages": ["dashboard", "channels"],
+    "pages": ["dashboard", "channels", "products", "profit"],
     "ai_assistant": false,
     "ai_referrals": false,
+    "ai_recommendations": false,
     "attribution": false,
-    "sku_analytics": false,
+    "funnel": false,
+    "ab_testing": false,
+    "sku_analytics": true,
+    "profit_analytics": true,
     "max_channels": 2,
     "data_retention_days": 90
   },
   "growth": {
-    "pages": ["dashboard", "channels", "products", "attribution"],
+    "pages": ["dashboard", "channels", "products", "profit", "funnel", "attribution", "ab-testing", "ai-assistant"],
     "ai_assistant": "limited",
     "ai_referrals": false,
+    "ai_recommendations": false,
     "attribution": true,
+    "funnel": true,
+    "ab_testing": true,
     "sku_analytics": true,
+    "profit_analytics": true,
     "max_channels": 4,
+    "max_experiments": 3,
     "data_retention_days": 365
   },
   "enterprise": {
-    "pages": ["dashboard", "channels", "products", "attribution", "ai-referrals", "ai-assistant"],
+    "pages": ["dashboard", "channels", "products", "profit", "funnel", "attribution", "ab-testing", "ai-referrals", "ai-recommendations", "ai-assistant"],
     "ai_assistant": "full",
     "ai_referrals": true,
+    "ai_recommendations": true,
     "attribution": true,
+    "funnel": true,
+    "ab_testing": true,
     "sku_analytics": true,
+    "profit_analytics": true,
     "max_channels": -1,
+    "max_experiments": -1,
     "data_retention_days": -1
   }
 }
