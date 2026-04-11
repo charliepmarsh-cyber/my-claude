@@ -6,7 +6,7 @@ export default function ProfitOverview() {
   return (
     <div className="space-y-6">
       {/* Product Profit Table */}
-      <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100 overflow-x-auto">
+      <div className="glass rounded-2xl p-5 overflow-x-auto">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Product Profitability</h3>
         <table className="w-full text-sm">
           <thead>
@@ -48,7 +48,7 @@ export default function ProfitOverview() {
       </div>
 
       {/* Channel Profitability */}
-      <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+      <div className="glass rounded-2xl p-5">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Channel Profitability</h3>
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           {p.byChannel.map(ch => (

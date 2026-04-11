@@ -14,7 +14,7 @@ export default function GoogleAdsCard() {
   ];
 
   return (
-    <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+    <div className="glass rounded-2xl p-5">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">Google Ads Performance</h3>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {metrics.map(m => (

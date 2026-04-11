@@ -9,7 +9,7 @@ export default function Header({ title }: { title: string }) {
   });
 
   return (
-    <header className="sticky top-0 z-10 flex items-center justify-between h-14 px-6 bg-white/80 backdrop-blur-md border-b border-gray-100">
+    <header className="sticky top-0 z-10 flex items-center justify-between h-14 px-6 glass-strong border-b-0 rounded-none">
       <div className="flex items-baseline gap-3">
         <h1 className="text-lg font-semibold text-gray-900">{title}</h1>
         <span className="text-xs text-gray-400 hidden sm:inline">{today}</span>

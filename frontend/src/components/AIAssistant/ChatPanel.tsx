@@ -59,7 +59,7 @@ export default function ChatPanel() {
   return (
     <div className="flex gap-6 h-[calc(100vh-10rem)]">
       {/* Chat Area */}
-      <div className="flex-1 flex flex-col bg-white rounded-xl shadow-sm border border-gray-100">
+      <div className="flex-1 flex flex-col glass rounded-2xl">
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
           {messages.length === 0 && (
@@ -131,7 +131,7 @@ export default function ChatPanel() {
       </div>
 
       {/* Context Sidebar */}
-      <div className="w-64 bg-white rounded-xl p-5 shadow-sm border border-gray-100 hidden lg:block">
+      <div className="w-64 glass rounded-2xl p-5 hidden lg:block">
         <h3 className="text-sm font-semibold text-gray-900 mb-4">Context Loaded</h3>
         <div className="space-y-3">
           {contextModules.map(m => (

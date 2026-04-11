@@ -5,7 +5,7 @@ const COLORS = ['#3b82f6', '#8b5cf6', '#f59e0b'];
 
 export default function DeviceChart() {
   return (
-    <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+    <div className="glass rounded-2xl p-5">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">Device Split</h3>
       <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">

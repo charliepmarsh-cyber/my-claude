@@ -3,7 +3,7 @@ import { demoData } from '../../data/demo';
 
 export default function RevenueImpact() {
   return (
-    <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+    <div className="glass rounded-2xl p-5">
       <h3 className="text-lg font-semibold text-gray-900 mb-1">Revenue Impact</h3>
       <p className="text-sm text-gray-500 mb-4">Organic revenue vs. with AI recommendations enabled</p>
       <div className="h-64">

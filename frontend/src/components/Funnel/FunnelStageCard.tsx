@@ -7,7 +7,7 @@ export default function FunnelStageCard() {
       <h3 className="text-lg font-semibold text-gray-900">Drop-off Analysis</h3>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {demoData.funnel.dropoffs.map(d => (
-          <div key={d.from} className="bg-white rounded-xl p-5 shadow-sm border border-gray-100 relative overflow-hidden">
+          <div key={d.from} className="glass rounded-2xl p-5 relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-400 to-orange-400" />
             <div className="flex items-center justify-between mb-3">
               <div>
@@ -25,7 +25,7 @@ export default function FunnelStageCard() {
       </div>
 
       {/* Device Breakdown */}
-      <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+      <div className="glass rounded-2xl p-5">
         <h4 className="text-sm font-semibold text-gray-900 mb-3">Conversion by Device</h4>
         <div className="grid grid-cols-3 gap-4">
           {demoData.funnel.byDevice.map(d => (

@@ -6,7 +6,7 @@ interface Props {
 
 export default function RevenueChart({ data }: Props) {
   return (
-    <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+    <div className="glass rounded-2xl p-4">
       <h3 className="text-sm font-semibold text-gray-900 mb-3">Revenue (30 Days)</h3>
       <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">

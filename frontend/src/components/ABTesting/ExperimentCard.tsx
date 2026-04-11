@@ -28,7 +28,7 @@ export default function ExperimentCard({ exp }: { exp: Experiment }) {
   const winner = exp.variants.reduce((a, b) => a.convRate > b.convRate ? a : b);
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div className="glass rounded-2xl overflow-hidden">
       {/* Header */}
       <button
         onClick={() => setExpanded(!expanded)}

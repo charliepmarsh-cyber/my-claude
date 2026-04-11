@@ -2,7 +2,7 @@ import { demoData } from '../../data/demo';
 
 export default function ChannelTable() {
   return (
-    <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+    <div className="glass rounded-2xl p-5">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">Channel Revenue Breakdown</h3>
       <table className="w-full">
         <thead>

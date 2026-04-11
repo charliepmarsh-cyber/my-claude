@@ -69,7 +69,7 @@ export default function Overview() {
         <div className="lg:col-span-2">
           <RevenueChart data={d.revenueTimeSeries} />
         </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+        <div className="glass rounded-2xl p-4">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-semibold text-gray-900">Traffic Sources</h3>
             <div className="flex items-center gap-1.5">

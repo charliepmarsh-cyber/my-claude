@@ -21,7 +21,7 @@ export default function ProductTable() {
   );
 
   return (
-    <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100 overflow-x-auto">
+    <div className="glass rounded-2xl p-5 overflow-x-auto">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">SKU Performance</h3>
       <table className="w-full text-sm">
         <thead>

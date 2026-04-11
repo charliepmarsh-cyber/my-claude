@@ -7,6 +7,15 @@
   --pulse-success: #10b981;
   --pulse-warning: #f59e0b;
   --pulse-danger: #ef4444;
+  --glass-bg: rgba(255, 255, 255, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.35);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+}
+
+body {
+  background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 25%, #f0f4ff 50%, #ede9fe 75%, #eef2ff 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
 }
 
 /* Brand gradient utility */
@@ -19,6 +28,30 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+/* Glass card */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-strong {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+.glass-dark {
+  background: rgba(15, 17, 23, 0.85);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 /* Shimmer animation for badges */
@@ -64,6 +97,15 @@
 .funnel-bar {
   transform-origin: left;
   animation: funnel-expand 0.8s ease-out forwards;
+}
+
+/* Glow effect for accent elements */
+.glow-blue {
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.15), 0 0 60px rgba(59, 130, 246, 0.05);
+}
+
+.glow-violet {
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.15), 0 0 60px rgba(139, 92, 246, 0.05);
 }
 
 /* Custom scrollbar for sidebar */

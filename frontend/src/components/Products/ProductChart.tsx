@@ -8,7 +8,7 @@ export default function ProductChart() {
   }));
 
   return (
-    <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+    <div className="glass rounded-2xl p-5">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Products by Revenue</h3>
       <div className="h-80">
         <ResponsiveContainer width="100%" height="100%">

@@ -16,7 +16,7 @@ import ProfitPage from './pages/ProfitPage';
 
 function AppLayout() {
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen">
       <Sidebar />
       <main className="flex-1 ml-64">
         <Outlet />

@@ -30,10 +30,10 @@ function Sparkline({ data, color = '#3b82f6' }: { data: number[]; color?: string
 
 export default function KPICard({ title, value, subtitle, icon, color, trend, sparkline }: KPICardProps) {
   return (
-    <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 group">
+    <div className="glass rounded-2xl p-4 hover:bg-white/75 transition-all duration-300 group">
       <div className="flex items-start justify-between mb-2">
-        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">{title}</p>
-        <div className={`p-1.5 rounded-lg bg-gradient-to-br ${color} opacity-80 group-hover:opacity-100 transition-opacity`}>
+        <p className="text-[11px] font-medium text-gray-500 uppercase tracking-wide">{title}</p>
+        <div className={`p-1.5 rounded-xl bg-gradient-to-br ${color} opacity-80 group-hover:opacity-100 transition-opacity`}>
           {icon}
         </div>
       </div>

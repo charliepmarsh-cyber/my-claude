@@ -35,7 +35,7 @@ export default function AIOverview() {
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Bar Chart by Source */}
-        <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+        <div className="glass rounded-2xl p-5">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Orders by AI Source</h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -51,7 +51,7 @@ export default function AIOverview() {
         </div>
 
         {/* Pie Chart Distribution */}
-        <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+        <div className="glass rounded-2xl p-5">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Revenue Distribution</h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -79,7 +79,7 @@ export default function AIOverview() {
       </div>
 
       {/* Top Products from AI */}
-      <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+      <div className="glass rounded-2xl p-5">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Products from AI Traffic</h3>
         <table className="w-full text-sm">
           <thead>

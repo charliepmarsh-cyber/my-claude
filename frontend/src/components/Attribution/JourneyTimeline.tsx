@@ -23,26 +23,26 @@ export default function JourneyTimeline() {
     <div className="space-y-6">
       {/* Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+        <div className="glass rounded-2xl p-4">
           <p className="text-xs text-gray-500">Touchpoints</p>
           <p className="text-2xl font-bold text-gray-900">{a.total_touchpoints}</p>
         </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+        <div className="glass rounded-2xl p-4">
           <p className="text-xs text-gray-500">Time to Convert</p>
           <p className="text-2xl font-bold text-gray-900">{days}d {hrs}h {mins}m</p>
         </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+        <div className="glass rounded-2xl p-4">
           <p className="text-xs text-gray-500">First Touch</p>
           <p className="text-lg font-bold text-gray-900">{a.first_touch.source} ({a.first_touch.medium})</p>
         </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+        <div className="glass rounded-2xl p-4">
           <p className="text-xs text-gray-500">Conversion Value</p>
           <p className="text-2xl font-bold text-green-600">£{a.conversion_value}</p>
         </div>
       </div>
 
       {/* Channels Touched */}
-      <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+      <div className="glass rounded-2xl p-5">
         <h3 className="text-lg font-semibold text-gray-900 mb-3">Channels Touched</h3>
         <div className="flex gap-2 flex-wrap">
           {a.channels_touched.map(ch => (
@@ -54,7 +54,7 @@ export default function JourneyTimeline() {
       </div>
 
       {/* Timeline */}
-      <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+      <div className="glass rounded-2xl p-5">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Visitor Journey: {a.visitorId}</h3>
         <div className="relative">
           <div className="absolute left-5 top-0 bottom-0 w-0.5 bg-gray-200" />

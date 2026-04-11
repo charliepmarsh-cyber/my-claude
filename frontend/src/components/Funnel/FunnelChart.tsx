@@ -5,7 +5,7 @@ export default function FunnelChart() {
   const maxCount = stages[0].count;
 
   return (
-    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+    <div className="glass rounded-2xl p-6">
       <h3 className="text-lg font-semibold text-gray-900 mb-6">Conversion Funnel</h3>
       <div className="space-y-3">
         {stages.map((stage, i) => {
