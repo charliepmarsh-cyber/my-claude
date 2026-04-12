@@ -10,6 +10,7 @@
 import { getAllLeads, saveLead, logAudit } from "../storage/database.js";
 import { callLlmJson } from "../lib/llm.js";
 import { validateDraft } from "../quality/validator.js";
+import { enrichMissingContacts } from "../connectors/email-enricher.js";
 import { log } from "../lib/logger.js";
 import {
   CORTEXCART_SYSTEM_PROMPT,
@@ -63,6 +64,19 @@ export async function redraftAllLeads(options?: RedraftOptions): Promise<Redraft
   }
 
   log.info(`Regenerating CortexCart v2 drafts for ${leads.length} leads${dryRun ? " (dry run)" : ""}...\n`);
+
+  // Step 0: Enrich missing emails/X handles via Hunter.io before drafting
+  const leadsNeedingEnrichment = leads.filter((l) => !l.contact.email || !l.contact.xUrl);
+  if (leadsNeedingEnrichment.length > 0 && !dryRun) {
+    log.info(`Enriching ${leadsNeedingEnrichment.length} leads missing email/X via Hunter.io...`);
+    await enrichMissingContacts(leadsNeedingEnrichment);
+    // Re-read leads from DB to pick up enriched data
+    const refreshed = getAllLeads();
+    for (let i = 0; i < leads.length; i++) {
+      const updated = refreshed.find((r) => r.id === leads[i].id);
+      if (updated) leads[i] = updated;
+    }
+  }
 
   const leadNames: string[] = [];
 

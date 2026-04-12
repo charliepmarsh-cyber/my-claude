@@ -228,9 +228,12 @@ async function revealPerson(apiKey: string, candidate: ApolloPersonResult): Prom
 
   const segment = inferSegmentFromSize(org.estimated_num_employees);
 
+  // Extract website from email domain if Apollo doesn't provide it
+  const website = org.website_url || org.primary_domain || domainFromEmail(person.email);
+
   return {
     companyName: org.name,
-    website: org.website_url || org.primary_domain || undefined,
+    website,
     industry: org.industry || undefined,
     sizeEstimate: org.estimated_num_employees ? estimateSize(org.estimated_num_employees) : undefined,
     contactName: person.name || [person.first_name, person.last_name].filter(Boolean).join(" ") || undefined,
@@ -285,4 +288,15 @@ function estimateSize(count: number): string {
   if (count <= 500) return "201-500";
   if (count <= 1000) return "501-1000";
   return "1000+";
+}
+
+/** Extract domain from email address to use as website fallback */
+function domainFromEmail(email?: string): string | undefined {
+  if (!email) return undefined;
+  const domain = email.split("@")[1];
+  if (!domain) return undefined;
+  // Skip generic email providers
+  const generic = ["gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "icloud.com", "aol.com", "mail.com"];
+  if (generic.includes(domain.toLowerCase())) return undefined;
+  return domain;
 }
