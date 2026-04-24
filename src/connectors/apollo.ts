@@ -149,6 +149,11 @@ export const apolloConnector: LeadSourceConnector = {
           person_not_titles: EXCLUDE_TITLES,
           q_keywords: keyword,
           organization_num_employees_ranges: [`${minSize},${maxSize}`],
+          // English-speaking countries only
+          person_locations: [
+            "United States", "United Kingdom", "Canada",
+            "Australia", "Ireland", "New Zealand",
+          ],
           ...(params.filters || {}),
         };
 
