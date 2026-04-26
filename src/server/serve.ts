@@ -20,7 +20,7 @@ export async function startServer(opts: ServerOptions): Promise<void> {
     log.warn("WEBHOOK_AUTH_TOKEN not set — endpoints are unauthenticated");
   }
 
-  serve({ fetch: app.fetch, port }, () => {
+  serve({ fetch: app.fetch, port, hostname: "0.0.0.0" }, () => {
     log.success(`Server running on http://localhost:${port}`);
     console.log("");
     console.log("  Endpoints:");

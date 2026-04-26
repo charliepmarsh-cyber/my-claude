@@ -426,7 +426,7 @@ program
 program
   .command("serve")
   .description("Start webhook server for n8n integration")
-  .option("--port <port>", "Server port", process.env.WEBHOOK_PORT || "3847")
+  .option("--port <port>", "Server port", process.env.PORT || process.env.WEBHOOK_PORT || "3847")
   .action(async (opts) => {
     const { startServer } = await import("./server/serve.js");
     await startServer({
