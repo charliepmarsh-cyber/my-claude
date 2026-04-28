@@ -30,25 +30,59 @@ app.get("/", (c) => {
     leads = leads.filter((l) => (l.score?.finalScore ?? 0) >= minScore);
   }
 
-  const flattened = leads.map((l) => ({
-    id: l.id,
-    companyName: l.company.name,
-    website: l.company.website || "",
-    platform: l.company.platform || "",
-    industry: l.company.industry || "",
-    segment: l.segment,
-    status: l.status,
-    contactName: l.contact.fullName || "",
-    contactRole: l.contact.role || "",
-    contactEmail: l.contact.email || "",
-    linkedinUrl: l.contact.linkedinUrl || "",
-    score: l.score?.finalScore ?? null,
-    tier: l.score?.tier ?? null,
-    draftCount: l.outreachDrafts.length,
-    personalizationNotes: l.personalizationNotes || "",
-    createdAt: l.createdAt,
-    updatedAt: l.updatedAt,
-  }));
+  const flattened = leads.map((l) => {
+    // Pick the first draft per type/variant for export
+    const findDraft = (type: string, variant?: "A" | "B") => {
+      const matches = l.outreachDrafts.filter((d) => d.messageType === type);
+      if (variant) {
+        return matches.find((d) => d.personalizationSnippet?.includes(`Variant ${variant}`)) || matches[0];
+      }
+      return matches[0];
+    };
+
+    const emailA = findDraft("email_first_touch", "A");
+    const emailB = findDraft("email_first_touch", "B");
+    const linkedinNote = findDraft("linkedin_connection_note");
+    const linkedinDM = findDraft("linkedin_first_message");
+    const xEngagement = findDraft("x_engagement_idea");
+    const xDm = findDraft("x_dm");
+    const followUp1 = findDraft("email_follow_up_1");
+    const followUp2 = findDraft("email_follow_up_2");
+
+    return {
+      id: l.id,
+      companyName: l.company.name,
+      website: l.company.website || "",
+      platform: l.company.platform || "",
+      industry: l.company.industry || "",
+      segment: l.segment,
+      status: l.status,
+      contactName: l.contact.fullName || "",
+      contactRole: l.contact.role || "",
+      contactEmail: l.contact.email || "",
+      linkedinUrl: l.contact.linkedinUrl || "",
+      xUrl: l.contact.xUrl || "",
+      score: l.score?.finalScore ?? null,
+      tier: l.score?.tier ?? null,
+      draftCount: l.outreachDrafts.length,
+      personalizationNotes: l.personalizationNotes || "",
+      // Outreach drafts
+      emailASubject: emailA?.subject || "",
+      emailABody: emailA?.body || "",
+      emailBSubject: emailB?.subject || "",
+      emailBBody: emailB?.body || "",
+      linkedinConnectionNote: linkedinNote?.body || "",
+      linkedinFirstMessage: linkedinDM?.body || "",
+      xEngagementStrategy: xEngagement?.body || "",
+      xDm: xDm?.body || "",
+      followUp1Subject: followUp1?.subject || "",
+      followUp1Body: followUp1?.body || "",
+      followUp2Subject: followUp2?.subject || "",
+      followUp2Body: followUp2?.body || "",
+      createdAt: l.createdAt,
+      updatedAt: l.updatedAt,
+    };
+  });
 
   return c.json({
     ok: true,

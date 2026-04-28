@@ -1,0 +1,242 @@
+{
+  "name": "CortexCart — Daily Lead Discovery",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * 1-5"
+            }
+          ]
+        }
+      },
+      "id": "schedule-1",
+      "name": "Every Weekday 8am",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://my-claude.onrender.com/webhook/discover",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Content-Type", "value": "application/json" },
+            { "name": "Authorization", "value": "Bearer cortex-cart-secret-2026" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"segment\": \"shopify\",\n  \"maxLeads\": 10,\n  \"runPipeline\": true,\n  \"dryRun\": false\n}",
+        "options": { "timeout": 30000 }
+      },
+      "id": "discover-1",
+      "name": "Trigger Discovery",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "amount": 10,
+        "unit": "minutes"
+      },
+      "id": "wait-1",
+      "name": "Wait for Pipeline",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [720, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://my-claude.onrender.com/webhook/status?jobId={{ $('Trigger Discovery').item.json.jobId }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "Bearer cortex-cart-secret-2026" }
+          ]
+        },
+        "options": { "timeout": 30000 }
+      },
+      "id": "status-1",
+      "name": "Check Job Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [960, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "" },
+          "conditions": [
+            {
+              "id": "cond-1",
+              "leftValue": "={{ $json.job.status }}",
+              "rightValue": "completed",
+              "operator": { "type": "string", "operation": "equals" }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "if-1",
+      "name": "Job Done?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1200, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://my-claude.onrender.com/webhook/redraft",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Content-Type", "value": "application/json" },
+            { "name": "Authorization", "value": "Bearer cortex-cart-secret-2026" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{}",
+        "options": { "timeout": 30000 }
+      },
+      "id": "redraft-1",
+      "name": "Redraft CortexCart Messages",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1440, 200]
+    },
+    {
+      "parameters": {
+        "amount": 8,
+        "unit": "minutes"
+      },
+      "id": "wait-2",
+      "name": "Wait for Drafts",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [1680, 200]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://my-claude.onrender.com/webhook/export?status=approved",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "Bearer cortex-cart-secret-2026" }
+          ]
+        },
+        "options": { "timeout": 30000 }
+      },
+      "id": "export-1",
+      "name": "Export Approved Leads",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1920, 200]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "leads",
+        "options": {}
+      },
+      "id": "split-1",
+      "name": "Split Out",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [2160, 200]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_YOUR_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Sheet1",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Company": "={{ $json.companyName }}",
+            "Contact": "={{ $json.contactName }}",
+            "Role": "={{ $json.contactRole }}",
+            "Email": "={{ $json.contactEmail }}",
+            "LinkedIn": "={{ $json.linkedinUrl }}",
+            "X": "={{ $json.xUrl }}",
+            "Segment": "={{ $json.segment }}",
+            "Score": "={{ $json.score }}",
+            "Tier": "={{ $json.tier }}",
+            "Email A Subject": "={{ $json.emailASubject }}",
+            "Email A Body": "={{ $json.emailABody }}",
+            "Email B Subject": "={{ $json.emailBSubject }}",
+            "Email B Body": "={{ $json.emailBBody }}",
+            "LinkedIn Connection Note": "={{ $json.linkedinConnectionNote }}",
+            "LinkedIn First Message": "={{ $json.linkedinFirstMessage }}",
+            "X Engagement Strategy": "={{ $json.xEngagementStrategy }}",
+            "X DM": "={{ $json.xDm }}",
+            "Follow Up 1 Subject": "={{ $json.followUp1Subject }}",
+            "Follow Up 1 Body": "={{ $json.followUp1Body }}",
+            "Follow Up 2 Subject": "={{ $json.followUp2Subject }}",
+            "Follow Up 2 Body": "={{ $json.followUp2Body }}",
+            "Status": "={{ $json.status }}",
+            "Date": "={{ $now.toISO() }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "sheets-1",
+      "name": "Append row in sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [2400, 200]
+    }
+  ],
+  "connections": {
+    "Every Weekday 8am": {
+      "main": [[{ "node": "Trigger Discovery", "type": "main", "index": 0 }]]
+    },
+    "Trigger Discovery": {
+      "main": [[{ "node": "Wait for Pipeline", "type": "main", "index": 0 }]]
+    },
+    "Wait for Pipeline": {
+      "main": [[{ "node": "Check Job Status", "type": "main", "index": 0 }]]
+    },
+    "Check Job Status": {
+      "main": [[{ "node": "Job Done?", "type": "main", "index": 0 }]]
+    },
+    "Job Done?": {
+      "main": [
+        [{ "node": "Redraft CortexCart Messages", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Redraft CortexCart Messages": {
+      "main": [[{ "node": "Wait for Drafts", "type": "main", "index": 0 }]]
+    },
+    "Wait for Drafts": {
+      "main": [[{ "node": "Export Approved Leads", "type": "main", "index": 0 }]]
+    },
+    "Export Approved Leads": {
+      "main": [[{ "node": "Split Out", "type": "main", "index": 0 }]]
+    },
+    "Split Out": {
+      "main": [[{ "node": "Append row in sheet", "type": "main", "index": 0 }]]
+    }
+  },
+  "pinData": {},
+  "settings": { "executionOrder": "v1" },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1
+}
