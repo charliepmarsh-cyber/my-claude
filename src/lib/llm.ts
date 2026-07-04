@@ -92,8 +92,11 @@ export async function callLlm(req: LlmRequest): Promise<LlmResponse> {
     await rateLimiter.acquire();
 
     const body = {
-      model: "claude-sonnet-4-20250514",
+      model: process.env.LLM_MODEL || "claude-sonnet-5",
       max_tokens: req.maxTokens || 2048,
+      // Structured-JSON extraction calls — thinking off keeps output inside
+      // max_tokens (Sonnet 5 runs adaptive thinking by default otherwise)
+      thinking: { type: "disabled" },
       system: req.system,
       messages: [{ role: "user", content: req.prompt }],
     };

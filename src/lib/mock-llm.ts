@@ -87,8 +87,32 @@ export function generateMockResponse(system: string, prompt: string): string {
     return JSON.stringify(mockPainPoints(ctx));
   }
 
-  // LinkedIn connection note
-  if (prompt.includes("LinkedIn connection request note")) {
+  // CortexCart dual-variant cold email
+  if (prompt.includes("Write TWO cold email variants")) {
+    const single = mockColdEmail(ctx);
+    return JSON.stringify({
+      variantA: { subject: "tracking your store numbers?", body: `Hey ${ctx.contactName !== "unknown" ? ctx.contactName.split(" ")[0] : "there"} — most ${ctx.industry || "DTC"} stores I talk to check three dashboards before breakfast. We built a free one that pulls it all together and explains why sales moved. Early access while we're in beta: tracker.cortexcart.com\n\nCharlie`, personalizationSnippet: "niche-level observation", signalUsed: "platform + niche" },
+      variantB: { subject: "quick question", body: `Hey — curious how you're tracking conversions at ${ctx.companyName}? Asking because we built a free dashboard for Shopify stores and I'm trying to understand what setups people actually run.\n\nCharlie`, personalizationSnippet: single.personalizationSnippet, signalUsed: single.signalUsed },
+    });
+  }
+
+  // CortexCart LinkedIn DM (post-accept)
+  if (prompt.includes("LinkedIn DM to send AFTER they accept")) {
+    return JSON.stringify({ body: `Thanks for connecting! Curious — how do you track ${ctx.companyName}'s store performance day to day? We built a free dashboard for exactly that and I'm always keen to hear what setups people run.`, personalizationSnippet: "post-accept opener", signalUsed: "connection accepted" });
+  }
+
+  // CortexCart X engagement ideas
+  if (prompt.includes("ways to engage with this person's X content")) {
+    return JSON.stringify(mockXEngagement(ctx));
+  }
+
+  // CortexCart X DM
+  if (prompt.includes("Write an X DM. UNDER 50 WORDS")) {
+    return JSON.stringify({ body: `loved what you're doing with ${ctx.companyName} — how are you tracking which channel actually drives sales? we built a free dashboard for that`, personalizationSnippet: "their content", signalUsed: "social presence" });
+  }
+
+  // LinkedIn connection note (generic + CortexCart variants)
+  if (prompt.includes("LinkedIn connection request note") || prompt.includes("LinkedIn connection request")) {
     return JSON.stringify(mockLinkedInConnectionNote(ctx));
   }
 

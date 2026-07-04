@@ -81,99 +81,11 @@ export async function redraftAllLeads(options?: RedraftOptions): Promise<Redraft
   const leadNames: string[] = [];
 
   for (const lead of leads) {
-    const firstName = lead.contact.firstName || lead.contact.fullName?.split(" ")[0] || "there";
-    const role = lead.contact.role || lead.contact.title || "Founder";
     const company = lead.company.name;
-    const niche = lead.company.niche || lead.company.industry || inferNiche(lead);
-    const observation = buildObservation(lead);
-    const painHypothesis = buildPainHypothesis(lead);
+    log.info(`━━━ ${company} ━━━`);
 
-    log.info(`━━━ ${company} (${firstName}, ${role}) ━━━`);
-
-    const drafts: OutreachDraft[] = [];
+    const drafts = await draftCortexCartLead(lead);
     const now = new Date().toISOString();
-    const ctx = { contactFirstName: firstName, contactRole: role, companyName: company, niche, observation, painHypothesis };
-
-    // 1. Cold Email (Variant A + B)
-    try {
-      const r = await callLlmJson<DualEmailDraft>({
-        system: CORTEXCART_SYSTEM_PROMPT,
-        prompt: buildCortexCartEmail(ctx),
-      });
-      drafts.push(makeDraft("email", "email_first_touch", {
-        subject: r.variantA.subject,
-        body: r.variantA.body,
-        personalizationSnippet: `[Variant A - Insight] ${r.variantA.personalizationSnippet}`,
-        signalUsed: r.variantA.signalUsed,
-      }, now));
-      drafts.push(makeDraft("email", "email_first_touch", {
-        subject: r.variantB.subject,
-        body: r.variantB.body,
-        personalizationSnippet: `[Variant B - Question] ${r.variantB.personalizationSnippet}`,
-        signalUsed: r.variantB.signalUsed,
-      }, now));
-    } catch (e) { log.warn(`Email failed: ${(e as Error).message}`); }
-
-    // 2. LinkedIn connection note
-    try {
-      const r = await callLlmJson<SingleDraft>({
-        system: CORTEXCART_SYSTEM_PROMPT,
-        prompt: buildCortexCartLinkedInNote({ contactFirstName: firstName, companyName: company, niche, observation }),
-      });
-      drafts.push(makeDraft("linkedin", "linkedin_connection_note", r, now));
-    } catch (e) { log.warn(`LinkedIn note failed: ${(e as Error).message}`); }
-
-    // 3. LinkedIn follow-up DM
-    try {
-      const r = await callLlmJson<SingleDraft>({
-        system: CORTEXCART_SYSTEM_PROMPT,
-        prompt: buildCortexCartLinkedInMessage(ctx),
-      });
-      drafts.push(makeDraft("linkedin", "linkedin_first_message", r, now));
-    } catch (e) { log.warn(`LinkedIn DM failed: ${(e as Error).message}`); }
-
-    // 4. X engagement strategy
-    try {
-      const r = await callLlmJson<SingleDraft>({
-        system: CORTEXCART_SYSTEM_PROMPT,
-        prompt: buildCortexCartXEngagement({ contactFirstName: firstName, companyName: company, niche, observation }),
-      });
-      drafts.push(makeDraft("x", "x_engagement_idea", r, now));
-    } catch (e) { log.warn(`X engagement failed: ${(e as Error).message}`); }
-
-    // 5. X DM
-    try {
-      const r = await callLlmJson<SingleDraft>({
-        system: CORTEXCART_SYSTEM_PROMPT,
-        prompt: buildCortexCartXDm({ contactFirstName: firstName, companyName: company, niche, observation }),
-      });
-      drafts.push(makeDraft("x", "x_dm", r, now));
-    } catch (e) { log.warn(`X DM failed: ${(e as Error).message}`); }
-
-    // 6. Follow-up #1 (Day 3-5)
-    try {
-      const r = await callLlmJson<SingleDraft>({
-        system: CORTEXCART_SYSTEM_PROMPT,
-        prompt: buildCortexCartFollowUp({ contactFirstName: firstName, companyName: company, followUpNumber: 1 }),
-      });
-      drafts.push(makeDraft("email", "email_follow_up_1", r, now));
-    } catch (e) { log.warn(`Follow-up 1 failed: ${(e as Error).message}`); }
-
-    // 7. Follow-up #2 (Day 10, final)
-    try {
-      const r = await callLlmJson<SingleDraft>({
-        system: CORTEXCART_SYSTEM_PROMPT,
-        prompt: buildCortexCartFollowUp({ contactFirstName: firstName, companyName: company, followUpNumber: 2 }),
-      });
-      drafts.push(makeDraft("email", "email_follow_up_2", r, now));
-    } catch (e) { log.warn(`Follow-up 2 failed: ${(e as Error).message}`); }
-
-    // Validate all drafts
-    for (const draft of drafts) {
-      const v = validateDraft(draft);
-      draft.qualityScore = v.overallScore;
-      draft.qualityIssues = v.issues.filter((i) => i.severity !== "info").map((i) => `[${i.severity}] ${i.message}`);
-    }
 
     if (!dryRun) {
       const updated: Lead = {
@@ -195,6 +107,109 @@ export async function redraftAllLeads(options?: RedraftOptions): Promise<Redraft
   return { count: leadNames.length, leadNames };
 }
 
+// ── Per-lead CortexCart drafting (shared with the main pipeline) ─
+
+/**
+ * Generate the full CortexCart-voice draft set for one lead:
+ * email A/B variants, LinkedIn note + DM, X engagement + DM, and
+ * two follow-ups. Pure — does not save or change lead status.
+ */
+export async function draftCortexCartLead(lead: Lead): Promise<OutreachDraft[]> {
+  const firstName = lead.contact.firstName || lead.contact.fullName?.split(" ")[0] || "there";
+  const role = lead.contact.role || lead.contact.title || "Founder";
+  const company = lead.company.name;
+  const niche = lead.company.niche || lead.company.industry || inferNiche(lead);
+  const observation = buildObservation(lead);
+  const painHypothesis = buildPainHypothesis(lead);
+
+  const drafts: OutreachDraft[] = [];
+  const now = new Date().toISOString();
+  const ctx = { contactFirstName: firstName, contactRole: role, companyName: company, niche, observation, painHypothesis };
+
+  // 1. Cold Email (Variant A + B)
+  try {
+    const r = await callLlmJson<DualEmailDraft>({
+      system: CORTEXCART_SYSTEM_PROMPT,
+      prompt: buildCortexCartEmail(ctx),
+    });
+    drafts.push(makeDraft("email", "email_first_touch", {
+      subject: r.variantA.subject,
+      body: r.variantA.body,
+      personalizationSnippet: `[Variant A - Insight] ${r.variantA.personalizationSnippet}`,
+      signalUsed: r.variantA.signalUsed,
+    }, now));
+    drafts.push(makeDraft("email", "email_first_touch", {
+      subject: r.variantB.subject,
+      body: r.variantB.body,
+      personalizationSnippet: `[Variant B - Question] ${r.variantB.personalizationSnippet}`,
+      signalUsed: r.variantB.signalUsed,
+    }, now));
+  } catch (e) { log.warn(`Email failed: ${(e as Error).message}`); }
+
+  // 2. LinkedIn connection note
+  try {
+    const r = await callLlmJson<SingleDraft>({
+      system: CORTEXCART_SYSTEM_PROMPT,
+      prompt: buildCortexCartLinkedInNote({ contactFirstName: firstName, companyName: company, niche, observation }),
+    });
+    drafts.push(makeDraft("linkedin", "linkedin_connection_note", r, now));
+  } catch (e) { log.warn(`LinkedIn note failed: ${(e as Error).message}`); }
+
+  // 3. LinkedIn follow-up DM
+  try {
+    const r = await callLlmJson<SingleDraft>({
+      system: CORTEXCART_SYSTEM_PROMPT,
+      prompt: buildCortexCartLinkedInMessage(ctx),
+    });
+    drafts.push(makeDraft("linkedin", "linkedin_first_message", r, now));
+  } catch (e) { log.warn(`LinkedIn DM failed: ${(e as Error).message}`); }
+
+  // 4. X engagement strategy
+  try {
+    const r = await callLlmJson<SingleDraft>({
+      system: CORTEXCART_SYSTEM_PROMPT,
+      prompt: buildCortexCartXEngagement({ contactFirstName: firstName, companyName: company, niche, observation }),
+    });
+    drafts.push(makeDraft("x", "x_engagement_idea", r, now));
+  } catch (e) { log.warn(`X engagement failed: ${(e as Error).message}`); }
+
+  // 5. X DM
+  try {
+    const r = await callLlmJson<SingleDraft>({
+      system: CORTEXCART_SYSTEM_PROMPT,
+      prompt: buildCortexCartXDm({ contactFirstName: firstName, companyName: company, niche, observation }),
+    });
+    drafts.push(makeDraft("x", "x_dm", r, now));
+  } catch (e) { log.warn(`X DM failed: ${(e as Error).message}`); }
+
+  // 6. Follow-up #1 (Day 3-5)
+  try {
+    const r = await callLlmJson<SingleDraft>({
+      system: CORTEXCART_SYSTEM_PROMPT,
+      prompt: buildCortexCartFollowUp({ contactFirstName: firstName, companyName: company, followUpNumber: 1 }),
+    });
+    drafts.push(makeDraft("email", "email_follow_up_1", r, now));
+  } catch (e) { log.warn(`Follow-up 1 failed: ${(e as Error).message}`); }
+
+  // 7. Follow-up #2 (Day 10, final)
+  try {
+    const r = await callLlmJson<SingleDraft>({
+      system: CORTEXCART_SYSTEM_PROMPT,
+      prompt: buildCortexCartFollowUp({ contactFirstName: firstName, companyName: company, followUpNumber: 2 }),
+    });
+    drafts.push(makeDraft("email", "email_follow_up_2", r, now));
+  } catch (e) { log.warn(`Follow-up 2 failed: ${(e as Error).message}`); }
+
+  // Validate all drafts
+  for (const draft of drafts) {
+    const v = validateDraft(draft);
+    draft.qualityScore = v.overallScore;
+    draft.qualityIssues = v.issues.filter((i) => i.severity !== "info").map((i) => `[${i.severity}] ${i.message}`);
+  }
+
+  return drafts;
+}
+
 // ── Helpers ─────────────────────────────────────────────────────
 
 function buildObservation(lead: Lead): string {
@@ -206,16 +221,24 @@ function buildObservation(lead: Lead): string {
   if (lead.company.industry) facts.push(`Industry: ${lead.company.industry}`);
   if (lead.company.sizeEstimate) facts.push(`Team size: ~${lead.company.sizeEstimate}`);
   if (lead.company.platform) facts.push(`Platform: ${lead.company.platform}`);
+  if (lead.company.techStack.length > 0) facts.push(`Known tools: ${lead.company.techStack.join(", ")}`);
   // Only include signals that came from real data, not LLM-generated ones
   if (lead.signals.rawNotes && !lead.signals.rawNotes.includes("[ENRICHMENT_FAILED]")) {
     facts.push(`Notes: ${lead.signals.rawNotes.slice(0, 100)}`);
+  }
+  // AI fit analysis: the strongest opener angle for this store
+  if (lead.aiAnalysis?.bestSalesAngle) {
+    facts.push(`Recommended angle: ${lead.aiAnalysis.bestSalesAngle}`);
   }
   if (facts.length <= 2) facts.push("(Limited data — keep message general, ask questions instead of making assumptions)");
   return facts.join(". ");
 }
 
 function buildPainHypothesis(lead: Lead): string {
-  // Don't invent pain points — use a general niche-relevant hypothesis
+  // Prefer the AI fit analysis, then high-confidence pain points — never invent
+  if (lead.aiAnalysis?.estimatedPainPoints?.length) {
+    return lead.aiAnalysis.estimatedPainPoints[0];
+  }
   if (lead.painPoints.length > 0 && lead.painPoints[0].confidence === "high") {
     return lead.painPoints[0].hypothesis;
   }
