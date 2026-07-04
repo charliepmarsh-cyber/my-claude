@@ -62,6 +62,11 @@ function extractContext(prompt: string): MockContext {
 export function generateMockResponse(system: string, prompt: string): string {
   const ctx = extractContext(prompt);
 
+  // Marketing department content generation (CortexCart OS)
+  if (system.includes("marketing department")) {
+    return JSON.stringify(mockMarketingContent(prompt));
+  }
+
   // Enrichment prompt
   if (prompt.includes("Extract the following as JSON") && prompt.includes("companyDescription")) {
     return JSON.stringify(mockEnrichment(ctx));
@@ -271,4 +276,74 @@ function mockFollowUp(ctx: MockContext) {
     personalizationSnippet: "Relevant automation example for their industry",
     signalUsed: "industry relevance",
   };
+}
+
+// ── Marketing content (CortexCart OS) ───────────────────────────
+
+function mockMarketingContent(prompt: string): { items: Array<Record<string, string>> } {
+  const countMatch = prompt.match(/Write (\d+)/);
+  const count = Math.min(parseInt(countMatch?.[1] || "3", 10) || 3, 10);
+
+  let template: Array<Record<string, string>>;
+
+  if (prompt.includes("Higgsfield")) {
+    template = [
+      {
+        title: "The Guess — drowning in tabs",
+        body: "Cinematic close-up of an ecommerce founder at a desk at night, face lit by cold blue monitor glow, dozens of floating translucent spreadsheet windows and red declining charts swirling around them, deep navy palette with electric cyan accents, anamorphic lens, shallow depth of field, slow push-in, volumetric light through window blinds, 8s",
+        notes: "Beat 1 (The Guess) — 16:9 hero, also crops to 9:16",
+      },
+      {
+        title: "The Turn — data convergence",
+        body: "Streams of glowing data particles from every direction converging into a single floating dashboard screen, chaos resolving into order, electric cyan and growth-green light trails against deep navy void, camera orbits the dashboard as a green revenue curve rises, premium SaaS brand film aesthetic, volumetric glow, 6s",
+        notes: "Beat 2 (The Turn) — 16:9 hero + 6s bumper",
+      },
+      {
+        title: "The Growth — calm control",
+        body: "Same founder in warm morning light, relaxed posture, one clean glowing dashboard on screen with a climbing green curve, soft depth of field, slow dolly out revealing a calm workspace, deep navy and growth-green palette, anamorphic bokeh, confident and quiet mood, 8s",
+        notes: "Beat 3 (The Growth) — 16:9 hero + 9:16 reel closer",
+      },
+    ];
+  } else if (prompt.includes("opening angles")) {
+    template = [
+      {
+        title: "The why-gap question",
+        body: "Quick one — when sales dip on a paid-traffic week, how long does it take you to find out *why*? For most Shopify stores it's an evening of spreadsheets.",
+        notes: "Works because it names the exact pain (attribution confusion) without inventing facts about the store. Use for stores running Meta/Google ads.",
+      },
+      {
+        title: "The tool-stack tally",
+        body: "Curious — how many tabs does it take to see how your store actually did yesterday? GA4, Meta, Shopify admin... we got tired of the tab-dance and built one dashboard for it.",
+        notes: "Works because every operator recognises the tab-dance. Safe for any niche; no personalisation needed beyond platform.",
+      },
+      {
+        title: "The Triple Whale price wedge",
+        body: "Most analytics tools that answer 'why did sales move' cost £200+/mo. We built one for stores doing £10k-£200k/mo — free while in beta.",
+        notes: "Works on price-conscious operators. Use when tech-stack signals show no existing analytics tool.",
+      },
+    ];
+  } else {
+    template = [
+      {
+        title: "The 2am spreadsheet post",
+        platform: "linkedin",
+        body: "Every store owner knows the 2am spreadsheet session.\n\nTraffic's up. Sales are down. And the answer is buried somewhere across GA4, Meta Ads Manager, and six Shopify reports.\n\nThat gap — between what happened and why — is where most ad budgets quietly die.\n\nWe built CortexCart to close it. Every channel in one dashboard, and AI that explains the why in plain English.\n\nFree while we're in beta. Link in comments.",
+        notes: "Post morning UK time; put the beta link in the first comment.",
+      },
+      {
+        title: "The tab-dance",
+        platform: "x",
+        body: "your store's daily report shouldn't require 9 tabs and a prayer.\n\none dashboard. every channel. AI that tells you WHY sales moved.\n\nfree during beta → tracker.cortexcart.com",
+        notes: "Pin this during launch week.",
+      },
+      {
+        title: "Stop guessing",
+        platform: "linkedin",
+        body: "\"Sales dropped 20% last week. I don't know why.\"\n\nI've heard a version of this from almost every store owner I've spoken to this year.\n\nNot because they're bad operators — because their data lives in five places and none of them talk to each other.\n\nStop guessing. Start growing. That's the whole pitch.",
+        notes: "Story-led; works as a founder post from Jonathan.",
+      },
+    ];
+  }
+
+  return { items: template.slice(0, Math.max(1, count)) };
 }

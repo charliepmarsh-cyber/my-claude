@@ -23,6 +23,8 @@ export async function startServer(opts: ServerOptions): Promise<void> {
   serve({ fetch: app.fetch, port, hostname: "0.0.0.0" }, () => {
     log.success(`Server running on http://localhost:${port}`);
     console.log("");
+    console.log(`  CortexCart OS dashboard:  http://localhost:${port}/`);
+    console.log("");
     console.log("  Endpoints:");
     console.log(`    POST  http://localhost:${port}/webhook/discover   — trigger discovery`);
     console.log(`    POST  http://localhost:${port}/webhook/ingest     — import leads`);

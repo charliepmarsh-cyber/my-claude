@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CortexCart OS</title>
+<style>
+  :root {
+    --navy: #0a1628;
+    --navy-2: #0f2138;
+    --navy-3: #16304f;
+    --cyan: #22d3ee;
+    --green: #34d399;
+    --red: #f87171;
+    --amber: #fbbf24;
+    --text: #e6edf5;
+    --muted: #8ba3bf;
+    --border: #1e3a5c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--navy);
+    color: var(--text);
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+  }
+  header {
+    display: flex; align-items: center; gap: 16px;
+    padding: 14px 24px; border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, var(--navy-2), var(--navy));
+    position: sticky; top: 0; z-index: 10;
+  }
+  .logo { font-size: 18px; font-weight: 700; letter-spacing: 0.3px; }
+  .logo span { color: var(--cyan); }
+  .tagline { color: var(--muted); font-size: 12px; }
+  nav { display: flex; gap: 4px; margin-left: auto; }
+  nav button {
+    background: none; border: 1px solid transparent; color: var(--muted);
+    padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 14px;
+  }
+  nav button:hover { color: var(--text); }
+  nav button.active { color: var(--cyan); border-color: var(--border); background: var(--navy-3); }
+  #token-box { display: flex; align-items: center; gap: 6px; }
+  #token-box input {
+    background: var(--navy-3); border: 1px solid var(--border); color: var(--text);
+    padding: 6px 10px; border-radius: 6px; font-size: 12px; width: 130px;
+  }
+  main { padding: 24px; max-width: 1300px; margin: 0 auto; }
+  h2 { font-size: 20px; margin-bottom: 4px; }
+  .sub { color: var(--muted); font-size: 13px; margin-bottom: 20px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 24px; }
+  .card {
+    background: var(--navy-2); border: 1px solid var(--border); border-radius: 12px;
+    padding: 18px;
+  }
+  .card.clickable { cursor: pointer; transition: border-color .15s; }
+  .card.clickable:hover { border-color: var(--cyan); }
+  .card .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.8px; }
+  .card .value { font-size: 28px; font-weight: 700; margin-top: 6px; }
+  .card .value.cyan { color: var(--cyan); }
+  .card .value.green { color: var(--green); }
+  .card .value.amber { color: var(--amber); }
+  .card .hint { color: var(--muted); font-size: 12px; margin-top: 4px; }
+  .banner {
+    background: linear-gradient(120deg, var(--navy-3), var(--navy-2));
+    border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; margin-bottom: 24px;
+  }
+  .banner h3 { color: var(--cyan); font-size: 16px; margin-bottom: 6px; }
+  .banner p { color: var(--muted); font-size: 13px; line-height: 1.6; max-width: 900px; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+  select, input[type=text], input[type=number], textarea {
+    background: var(--navy-3); border: 1px solid var(--border); color: var(--text);
+    padding: 8px 12px; border-radius: 8px; font-size: 13px;
+  }
+  button.btn {
+    background: var(--cyan); color: var(--navy); border: none; font-weight: 600;
+    padding: 9px 18px; border-radius: 8px; cursor: pointer; font-size: 13px;
+  }
+  button.btn:hover { filter: brightness(1.1); }
+  button.btn.secondary { background: var(--navy-3); color: var(--text); border: 1px solid var(--border); }
+  button.btn.green { background: var(--green); }
+  button.btn.red { background: var(--red); }
+  button.btn:disabled { opacity: 0.5; cursor: default; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; color: var(--muted); font-weight: 500; padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 12px; text-transform: uppercase; letter-spacing: .5px; }
+  td { padding: 10px 12px; border-bottom: 1px solid rgba(30,58,92,.5); }
+  tr.lead-row { cursor: pointer; }
+  tr.lead-row:hover td { background: var(--navy-2); }
+  .pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+  .pill.A { background: rgba(52,211,153,.15); color: var(--green); }
+  .pill.B { background: rgba(34,211,238,.15); color: var(--cyan); }
+  .pill.C { background: rgba(251,191,36,.15); color: var(--amber); }
+  .pill.D { background: rgba(248,113,113,.15); color: var(--red); }
+  .pill.status { background: var(--navy-3); color: var(--muted); }
+  .funnel { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+  .funnel .stage {
+    background: var(--navy-2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 10px 14px; min-width: 110px;
+  }
+  .funnel .stage b { display: block; font-size: 20px; color: var(--cyan); }
+  .funnel .stage span { font-size: 11px; color: var(--muted); }
+  #drawer {
+    position: fixed; top: 0; right: -720px; width: 700px; max-width: 95vw; height: 100vh;
+    background: var(--navy-2); border-left: 1px solid var(--border); z-index: 50;
+    transition: right .2s ease; overflow-y: auto; padding: 24px;
+  }
+  #drawer.open { right: 0; }
+  #drawer .close { float: right; background: none; border: none; color: var(--muted); font-size: 22px; cursor: pointer; }
+  .draft {
+    background: var(--navy); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px; margin-bottom: 12px;
+  }
+  .draft .dtype { color: var(--cyan); font-size: 11px; text-transform: uppercase; letter-spacing: .6px; margin-bottom: 6px; }
+  .draft .subject { font-weight: 600; margin-bottom: 6px; font-size: 13px; }
+  .draft .body { font-size: 13px; line-height: 1.6; color: var(--text); white-space: pre-wrap; }
+  .draft .copy { float: right; font-size: 11px; background: var(--navy-3); border: 1px solid var(--border); color: var(--muted); border-radius: 6px; padding: 3px 10px; cursor: pointer; }
+  .content-item { background: var(--navy-2); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 12px; }
+  .content-item h4 { font-size: 14px; color: var(--cyan); margin-bottom: 8px; }
+  .content-item .body { font-size: 13px; line-height: 1.6; white-space: pre-wrap; }
+  .content-item .meta { color: var(--muted); font-size: 11px; margin-top: 8px; }
+  .asset-row { display: flex; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid rgba(30,58,92,.5); font-size: 13px; }
+  .asset-row .kind { color: var(--muted); font-size: 11px; }
+  #toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--navy-3); border: 1px solid var(--cyan); color: var(--text);
+    padding: 12px 24px; border-radius: 10px; font-size: 13px; display: none; z-index: 100;
+  }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 900px) { .grid2 { grid-template-columns: 1fr; } #drawer { width: 100vw; } }
+  .fin-table input { width: 90px; }
+  .section-title { font-size: 15px; margin: 18px 0 10px; color: var(--text); }
+  .progress { height: 8px; background: var(--navy-3); border-radius: 999px; overflow: hidden; margin-top: 8px; }
+  .progress .bar { height: 100%; background: var(--green); border-radius: 999px; }
+  .muted { color: var(--muted); }
+  .spin { display: inline-block; animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">CortexCart <span>OS</span></div>
+    <div class="tagline">Stop guessing. Start growing.</div>
+  </div>
+  <nav>
+    <button data-tab="hub" class="active">Hub</button>
+    <button data-tab="sales">Sales</button>
+    <button data-tab="marketing">Marketing</button>
+    <button data-tab="finance">Finance</button>
+  </nav>
+  <div id="token-box" title="Only needed if WEBHOOK_AUTH_TOKEN is set on the server">
+    <input type="password" id="token" placeholder="API token (optional)">
+  </div>
+</header>
+
+<main>
+  <!-- HUB -->
+  <section id="tab-hub">
+    <h2>Company Hub</h2>
+    <div class="sub" id="hub-date"></div>
+    <div class="banner" id="hub-banner">Loading campaign…</div>
+    <div class="cards" id="hub-cards"></div>
+    <div class="section-title">Recent jobs</div>
+    <div id="hub-jobs" class="muted" style="font-size:13px">—</div>
+  </section>
+
+  <!-- SALES -->
+  <section id="tab-sales" style="display:none">
+    <h2>Sales — Lead Engine</h2>
+    <div class="sub">Discover → enrich → score → draft → review → export. Nothing sends without your approval.</div>
+
+    <div class="row">
+      <select id="disc-segment">
+        <option value="shopify">Shopify stores</option>
+        <option value="ecommerce">Ecommerce brands</option>
+        <option value="enterprise">Enterprise</option>
+      </select>
+      <input type="number" id="disc-max" value="25" min="1" max="100" style="width:80px" title="Max leads">
+      <button class="btn" id="btn-discover">Discover leads</button>
+      <button class="btn secondary" id="btn-process">Process pipeline</button>
+      <span id="job-status" class="muted" style="font-size:12px"></span>
+    </div>
+
+    <div class="funnel" id="funnel"></div>
+
+    <div class="row">
+      <select id="f-status">
+        <option value="">All statuses</option>
+        <option>new</option><option>enriched</option><option>scored</option><option>drafted</option>
+        <option>review_pending</option><option>approved</option><option>rejected</option>
+        <option>sent</option><option>replied</option><option>not_a_fit</option><option>snoozed</option>
+      </select>
+      <select id="f-tier">
+        <option value="">All tiers</option>
+        <option>A</option><option>B</option><option>C</option><option>D</option>
+      </select>
+      <input type="text" id="f-q" placeholder="Search company / contact / niche">
+      <button class="btn secondary" id="btn-refresh-leads">Refresh</button>
+    </div>
+
+    <table>
+      <thead><tr><th>Company</th><th>Contact</th><th>Niche</th><th>Score</th><th>Tier</th><th>Status</th><th>Drafts</th></tr></thead>
+      <tbody id="leads-body"><tr><td colspan="7" class="muted">Loading…</td></tr></tbody>
+    </table>
+  </section>
+
+  <!-- MARKETING -->
+  <section id="tab-marketing" style="display:none">
+    <h2>Marketing</h2>
+    <div class="sub">Campaign assets + on-brand content generation (Claude) + Higgsfield b-roll prompts.</div>
+
+    <div class="grid2">
+      <div>
+        <div class="section-title">Generate content</div>
+        <div class="row">
+          <select id="gen-kind">
+            <option value="social_post">Social posts (LinkedIn / X)</option>
+            <option value="outreach_angle">Outreach angles</option>
+            <option value="higgsfield_prompts">Higgsfield b-roll prompts</option>
+          </select>
+          <input type="number" id="gen-count" value="3" min="1" max="10" style="width:70px">
+        </div>
+        <div class="row">
+          <input type="text" id="gen-topic" placeholder="Optional topic / angle (e.g. 'why-gap for paid ads')" style="flex:1">
+          <button class="btn" id="btn-generate">Generate</button>
+        </div>
+        <div class="section-title">Content library</div>
+        <div id="mkt-content" class="muted" style="font-size:13px">Loading…</div>
+      </div>
+      <div>
+        <div class="section-title">Campaign assets <span class="muted" id="assets-dir" style="font-size:11px"></span></div>
+        <div id="mkt-assets" class="muted" style="font-size:13px">Loading…</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FINANCE -->
+  <section id="tab-finance" style="display:none">
+    <h2>Finance</h2>
+    <div class="sub">Targets, burn, and pipeline value projected from live lead tiers.</div>
+    <div class="cards" id="fin-cards"></div>
+    <div class="grid2">
+      <div>
+        <div class="section-title">Targets &amp; actuals</div>
+        <table class="fin-table">
+          <tbody id="fin-targets"></tbody>
+        </table>
+        <div class="section-title">Assumptions</div>
+        <table class="fin-table">
+          <tbody id="fin-assumptions"></tbody>
+        </table>
+      </div>
+      <div>
+        <div class="section-title">Monthly tool costs</div>
+        <table class="fin-table">
+          <tbody id="fin-costs"></tbody>
+        </table>
+        <div class="row" style="margin-top:10px">
+          <input type="text" id="cost-name" placeholder="Cost name" style="flex:1">
+          <input type="number" id="cost-amount" placeholder="£/mo" style="width:90px">
+          <button class="btn secondary" id="btn-add-cost">Add</button>
+        </div>
+      </div>
+    </div>
+    <div class="row" style="margin-top:18px">
+      <button class="btn green" id="btn-save-finance">Save finance settings</button>
+    </div>
+  </section>
+</main>
+
+<!-- Lead detail drawer -->
+<div id="drawer">
+  <button class="close" onclick="closeDrawer()">×</button>
+  <div id="drawer-content"></div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let financeState = null;
+
+// ── API helper ──────────────────────────────────────────────────
+async function api(path, opts = {}) {
+  const token = $('token').value || localStorage.getItem('os_token') || '';
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = 'Bearer ' + token;
+  const res = await fetch('/api/os' + path, { ...opts, headers });
+  const data = await res.json();
+  if (!res.ok || data.ok === false) {
+    throw new Error(typeof data.error === 'string' ? data.error : JSON.stringify(data.error || res.status));
+  }
+  return data;
+}
+
+function toast(msg, isError = false) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.style.borderColor = isError ? 'var(--red)' : 'var(--cyan)';
+  t.style.display = 'block';
+  clearTimeout(t._h);
+  t._h = setTimeout(() => (t.style.display = 'none'), 3500);
+}
+
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// ── Tabs ────────────────────────────────────────────────────────
+document.querySelectorAll('nav button').forEach((b) => {
+  b.onclick = () => {
+    document.querySelectorAll('nav button').forEach((x) => x.classList.remove('active'));
+    b.classList.add('active');
+    ['hub','sales','marketing','finance'].forEach((t) => ($('tab-'+t).style.display = t === b.dataset.tab ? '' : 'none'));
+    if (b.dataset.tab === 'hub') loadHub();
+    if (b.dataset.tab === 'sales') { loadFunnel(); loadLeads(); }
+    if (b.dataset.tab === 'marketing') loadMarketing();
+    if (b.dataset.tab === 'finance') loadFinance();
+  };
+});
+
+$('token').value = localStorage.getItem('os_token') || '';
+$('token').addEventListener('change', () => localStorage.setItem('os_token', $('token').value));
+
+// ── HUB ─────────────────────────────────────────────────────────
+async function loadHub() {
+  $('hub-date').textContent = new Date().toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  try {
+    const d = await api('/overview');
+    const c = d.campaign;
+    $('hub-banner').innerHTML =
+      '<h3>' + esc(c.name) + ' — ' + esc(c.product) + '</h3>' +
+      '<p>' + esc(c.positioning) + '</p>' +
+      '<p style="margin-top:8px"><b style="color:var(--green)">Offer:</b> ' + esc(c.offer) +
+      ' &nbsp;·&nbsp; <b style="color:var(--cyan)">ICP:</b> ' + esc(c.icp.summary) + '</p>';
+
+    const s = d.sales, f = d.finance, m = d.marketing;
+    $('hub-cards').innerHTML =
+      hubCard('sales', 'Sales — total leads', s.totalLeads, 'cyan', s.reviewPending + ' awaiting review · ' + s.approved + ' approved') +
+      hubCard('sales', 'Review queue', s.reviewPending, s.reviewPending > 0 ? 'amber' : 'green', s.reviewPending > 0 ? 'Action needed' : 'All clear') +
+      hubCard('marketing', 'Marketing assets', m.assetCount, 'cyan', m.contentCount + ' generated content items') +
+      hubCard('finance', 'Projected MRR', '£' + f.projectedMrrGbp, 'green', f.projectedTrials + ' projected trials from pipeline') +
+      hubCard('finance', 'Monthly burn', '£' + f.monthlyCostsGbp, 'amber', 'Tool + infra costs');
+
+    document.querySelectorAll('#hub-cards .card').forEach((card) => {
+      card.onclick = () => document.querySelector('nav button[data-tab="' + card.dataset.dept + '"]').click();
+    });
+
+    $('hub-jobs').innerHTML = (d.jobs && d.jobs.length)
+      ? d.jobs.map((j) => '<div>' + esc(j.type) + ' — <b>' + esc(j.status) + '</b> <span class="muted">' + esc(j.createdAt.slice(0,16).replace('T',' ')) + '</span>' + (j.error ? ' <span style="color:var(--red)">' + esc(j.error) + '</span>' : '') + '</div>').join('')
+      : 'No jobs run yet.';
+  } catch (e) {
+    $('hub-banner').innerHTML = '<h3 style="color:var(--red)">Could not load</h3><p>' + esc(e.message) + '</p>';
+  }
+}
+function hubCard(dept, label, value, color, hint) {
+  return '<div class="card clickable" data-dept="' + dept + '"><div class="label">' + esc(label) + '</div><div class="value ' + color + '">' + esc(value) + '</div><div class="hint">' + esc(hint) + '</div></div>';
+}
+
+// ── SALES ───────────────────────────────────────────────────────
+const FUNNEL_STAGES = ['new','enriched','scored','drafted','review_pending','approved','sent','replied'];
+
+async function loadFunnel() {
+  try {
+    const d = await api('/overview');
+    $('funnel').innerHTML = FUNNEL_STAGES.map((st) =>
+      '<div class="stage"><b>' + (d.sales.byStatus[st] || 0) + '</b><span>' + st.replace('_',' ') + '</span></div>'
+    ).join('');
+  } catch (e) { $('funnel').innerHTML = '<span class="muted">' + esc(e.message) + '</span>'; }
+}
+
+async function loadLeads() {
+  const params = new URLSearchParams();
+  if ($('f-status').value) params.set('status', $('f-status').value);
+  if ($('f-tier').value) params.set('tier', $('f-tier').value);
+  if ($('f-q').value) params.set('q', $('f-q').value);
+  try {
+    const d = await api('/leads?' + params);
+    $('leads-body').innerHTML = d.leads.length ? d.leads.map((l) =>
+      '<tr class="lead-row" onclick="openLead(\'' + l.id + '\')">' +
+      '<td><b>' + esc(l.company) + '</b></td>' +
+      '<td>' + esc(l.contact || '—') + '<div class="muted" style="font-size:11px">' + esc(l.role || '') + '</div></td>' +
+      '<td>' + esc(l.niche || '—') + '</td>' +
+      '<td>' + (l.score ?? '—') + '</td>' +
+      '<td>' + (l.tier ? '<span class="pill ' + l.tier + '">' + l.tier + '</span>' : '—') + '</td>' +
+      '<td><span class="pill status">' + esc(l.status) + '</span></td>' +
+      '<td>' + l.draftCount + '</td></tr>'
+    ).join('') : '<tr><td colspan="7" class="muted">No leads match. Run discovery to source new leads.</td></tr>';
+  } catch (e) {
+    $('leads-body').innerHTML = '<tr><td colspan="7" style="color:var(--red)">' + esc(e.message) + '</td></tr>';
+  }
+}
+
+$('btn-refresh-leads').onclick = () => { loadFunnel(); loadLeads(); };
+$('f-status').onchange = loadLeads;
+$('f-tier').onchange = loadLeads;
+$('f-q').addEventListener('keydown', (e) => { if (e.key === 'Enter') loadLeads(); });
+
+$('btn-discover').onclick = async () => {
+  try {
+    const d = await api('/run/discover', { method: 'POST', body: JSON.stringify({ segment: $('disc-segment').value, maxLeads: parseInt($('disc-max').value, 10) || 25 }) });
+    toast('Discovery started (' + d.jobId + ')');
+    pollJobs();
+  } catch (e) { toast(e.message, true); }
+};
+
+$('btn-process').onclick = async () => {
+  try {
+    const d = await api('/run/process', { method: 'POST', body: JSON.stringify({}) });
+    toast('Pipeline processing started (' + d.jobId + ')');
+    pollJobs();
+  } catch (e) { toast(e.message, true); }
+};
+
+let pollTimer = null;
+async function pollJobs() {
+  clearInterval(pollTimer);
+  pollTimer = setInterval(async () => {
+    try {
+      const d = await api('/jobs');
+      const running = d.jobs.filter((j) => j.status === 'running' || j.status === 'queued');
+      if (running.length) {
+        $('job-status').innerHTML = '<span class="spin">◌</span> ' + running.map((j) => j.type).join(', ') + ' running…';
+      } else {
+        $('job-status').textContent = '';
+        clearInterval(pollTimer);
+        loadFunnel(); loadLeads();
+        const last = d.jobs[0];
+        if (last) toast(last.type + ' ' + last.status + (last.error ? ': ' + last.error : ''), last.status === 'failed');
+      }
+    } catch { clearInterval(pollTimer); }
+  }, 3000);
+}
+
+// ── Lead drawer ─────────────────────────────────────────────────
+window.openLead = async function (id) {
+  try {
+    const d = await api('/leads/' + id);
+    const l = d.lead;
+    const drafts = (l.outreachDrafts || []).map((dr, i) =>
+      '<div class="draft"><button class="copy" onclick="copyText(this)" data-text="' + esc(dr.subject ? dr.subject + '\n\n' + dr.body : dr.body) + '">copy</button>' +
+      '<div class="dtype">' + esc(dr.messageType.replace(/_/g,' ')) + (dr.qualityScore != null ? ' · quality ' + dr.qualityScore : '') + '</div>' +
+      (dr.subject ? '<div class="subject">' + esc(dr.subject) + '</div>' : '') +
+      '<div class="body">' + esc(dr.body) + '</div></div>'
+    ).join('') || '<div class="muted">No drafts yet — run the pipeline.</div>';
+
+    const canReview = ['review_pending','drafted'].includes(l.status);
+    $('drawer-content').innerHTML =
+      '<h2>' + esc(l.company.name) + '</h2>' +
+      '<div class="sub">' + esc(l.contact.fullName || '') + (l.contact.role ? ' · ' + esc(l.contact.role) : '') + (l.contact.email ? ' · ' + esc(l.contact.email) : '') +
+      (l.company.website ? ' · <a href="' + esc(l.company.website) + '" target="_blank" style="color:var(--cyan)">site</a>' : '') + '</div>' +
+      '<div class="row">' +
+        (l.score ? '<span class="pill ' + l.score.tier + '">Tier ' + l.score.tier + ' · ' + l.score.finalScore + '</span>' : '') +
+        '<span class="pill status">' + esc(l.status) + '</span>' +
+      '</div>' +
+      (l.score ? '<p class="muted" style="font-size:12px;margin-bottom:14px">' + esc(l.score.explanation) + '</p>' : '') +
+      (canReview ?
+        '<div class="row">' +
+        '<button class="btn green" onclick="reviewLead(\'' + l.id + '\',\'approve\')">Approve</button>' +
+        '<button class="btn red" onclick="reviewLead(\'' + l.id + '\',\'reject\')">Reject</button>' +
+        '<button class="btn secondary" onclick="reviewLead(\'' + l.id + '\',\'snooze\')">Snooze</button>' +
+        '<button class="btn secondary" onclick="reviewLead(\'' + l.id + '\',\'not_a_fit\')">Not a fit</button>' +
+        '</div>' : '') +
+      '<div class="section-title">Outreach drafts</div>' + drafts +
+      '<div class="section-title">Audit trail</div>' +
+      '<div style="font-size:12px" class="muted">' + (d.audit || []).slice(0, 15).map((a) => a.timestamp.slice(0,16).replace('T',' ') + ' — ' + esc(a.action)).join('<br>') + '</div>';
+    $('drawer').classList.add('open');
+  } catch (e) { toast(e.message, true); }
+};
+
+window.closeDrawer = () => $('drawer').classList.remove('open');
+
+window.reviewLead = async function (id, action) {
+  let notes;
+  if (action === 'reject' || action === 'not_a_fit') {
+    notes = prompt('Notes (optional):') || undefined;
+  }
+  try {
+    await api('/leads/' + id + '/review', { method: 'POST', body: JSON.stringify({ action, notes }) });
+    toast('Lead ' + action.replace('_',' ') + 'd');
+    closeDrawer(); loadFunnel(); loadLeads();
+  } catch (e) { toast(e.message, true); }
+};
+
+window.copyText = function (btn) {
+  navigator.clipboard.writeText(btn.dataset.text).then(() => toast('Copied'));
+};
+
+// ── MARKETING ───────────────────────────────────────────────────
+async function loadMarketing() {
+  try {
+    const d = await api('/marketing');
+    $('assets-dir').textContent = d.assets.available ? d.assets.dir : '(folder not found: ' + d.assets.dir + ')';
+    $('mkt-assets').innerHTML = d.assets.assets.length ? d.assets.assets.map((a) =>
+      '<div class="asset-row"><span>' + esc(a.name) + '</span><span class="kind">' + a.kind + ' · ' + (a.sizeBytes/1024/1024).toFixed(1) + ' MB</span></div>'
+    ).join('') : 'No assets found.';
+    renderContent(d.content);
+  } catch (e) { $('mkt-content').innerHTML = '<span style="color:var(--red)">' + esc(e.message) + '</span>'; }
+}
+
+function renderContent(rows) {
+  $('mkt-content').innerHTML = rows.length ? rows.map((r) => {
+    const items = Array.isArray(r.content) ? r.content : [r.content];
+    return '<div class="content-item">' +
+      '<h4>' + esc(r.kind.replace(/_/g,' ')) + (r.topic ? ' — ' + esc(r.topic) : '') +
+      ' <button class="copy" style="float:right;background:var(--navy-3);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:11px" onclick="deleteContent(\'' + r.id + '\')">delete</button></h4>' +
+      items.map((it) =>
+        '<div style="margin-bottom:10px"><b style="font-size:13px">' + esc(it.title || '') + '</b>' +
+        (it.platform ? ' <span class="pill status">' + esc(it.platform) + '</span>' : '') +
+        '<div class="body">' + esc(it.body || '') + '</div>' +
+        (it.notes ? '<div class="meta">' + esc(it.notes) + '</div>' : '') + '</div>'
+      ).join('') +
+      '<div class="meta">' + r.createdAt.slice(0,16).replace('T',' ') + '</div></div>';
+  }).join('') : 'Nothing generated yet.';
+}
+
+$('btn-generate').onclick = async () => {
+  const btn = $('btn-generate');
+  btn.disabled = true; btn.textContent = 'Generating…';
+  try {
+    await api('/marketing/generate', { method: 'POST', body: JSON.stringify({
+      kind: $('gen-kind').value,
+      topic: $('gen-topic').value || undefined,
+      count: parseInt($('gen-count').value, 10) || 3,
+    })});
+    toast('Content generated');
+    loadMarketing();
+  } catch (e) { toast(e.message, true); }
+  btn.disabled = false; btn.textContent = 'Generate';
+};
+
+window.deleteContent = async function (id) {
+  try { await api('/marketing/content/' + id, { method: 'DELETE' }); loadMarketing(); }
+  catch (e) { toast(e.message, true); }
+};
+
+// ── FINANCE ─────────────────────────────────────────────────────
+async function loadFinance() {
+  try {
+    const d = await api('/finance');
+    financeState = d.finance.settings;
+    renderFinance(d.finance);
+  } catch (e) { $('fin-cards').innerHTML = '<div class="card"><div class="label" style="color:var(--red)">' + esc(e.message) + '</div></div>'; }
+}
+
+function renderFinance(f) {
+  const t = f.pipeline.tierCounts;
+  $('fin-cards').innerHTML =
+    '<div class="card"><div class="label">Active pipeline</div><div class="value cyan">' + f.pipeline.activeLeads + '</div><div class="hint">A:' + t.A + ' B:' + t.B + ' C:' + t.C + ' D:' + t.D + ' unscored:' + t.unscored + '</div></div>' +
+    '<div class="card"><div class="label">Projected trials</div><div class="value cyan">' + f.pipeline.projectedTrials + '</div><div class="hint">From tier conversion model</div></div>' +
+    '<div class="card"><div class="label">Projected MRR</div><div class="value green">£' + f.pipeline.projectedMrrGbp + '</div><div class="hint">£' + f.pipeline.projectedArrGbp + ' ARR</div></div>' +
+    '<div class="card"><div class="label">Monthly burn</div><div class="value amber">£' + f.costs.monthlyTotalGbp + '</div><div class="hint">' + f.costs.items.length + ' cost lines</div></div>' +
+    progressCard('Trials vs 30d target', f.progress.trialsVsTarget30d.actual, f.progress.trialsVsTarget30d.target) +
+    progressCard('MRR vs 90d target (£)', f.progress.mrrVsTarget90d.actualGbp, f.progress.mrrVsTarget90d.targetGbp);
+
+  const s = financeState;
+  $('fin-targets').innerHTML =
+    finRow('Trials target (30d)', 'targets.trials30d', s.targets.trials30d) +
+    finRow('Trials target (90d)', 'targets.trials90d', s.targets.trials90d) +
+    finRow('Paying target (90d)', 'targets.paying90d', s.targets.paying90d) +
+    finRow('MRR target 90d (£)', 'targets.mrr90dGbp', s.targets.mrr90dGbp) +
+    finRow('Actual trials', 'actuals.trials', s.actuals.trials) +
+    finRow('Actual paying', 'actuals.paying', s.actuals.paying) +
+    finRow('Actual MRR (£)', 'actuals.mrrGbp', s.actuals.mrrGbp);
+
+  $('fin-assumptions').innerHTML =
+    finRow('Tier A → trial rate', 'assumptions.trialRateByTier.A', s.assumptions.trialRateByTier.A, 0.01) +
+    finRow('Tier B → trial rate', 'assumptions.trialRateByTier.B', s.assumptions.trialRateByTier.B, 0.01) +
+    finRow('Tier C → trial rate', 'assumptions.trialRateByTier.C', s.assumptions.trialRateByTier.C, 0.005) +
+    finRow('Trial → paid rate', 'assumptions.trialToPaidRate', s.assumptions.trialToPaidRate, 0.05) +
+    finRow('Price (£/mo)', 'assumptions.priceGbpPerMonth', s.assumptions.priceGbpPerMonth);
+
+  $('fin-costs').innerHTML = s.costs.map((cst, i) =>
+    '<tr><td>' + esc(cst.name) + '</td><td><input type="number" data-cost-idx="' + i + '" value="' + cst.monthlyGbp + '"></td>' +
+    '<td><button class="btn secondary" style="padding:4px 10px" onclick="removeCost(' + i + ')">×</button></td></tr>'
+  ).join('');
+}
+
+function progressCard(label, actual, target) {
+  const pct = target > 0 ? Math.min(100, Math.round((actual / target) * 100)) : 0;
+  return '<div class="card"><div class="label">' + esc(label) + '</div><div class="value">' + actual + ' / ' + target + '</div><div class="progress"><div class="bar" style="width:' + pct + '%"></div></div></div>';
+}
+
+function finRow(label, path, value, step) {
+  return '<tr><td class="muted" style="font-size:13px">' + esc(label) + '</td>' +
+    '<td><input type="number" step="' + (step || 1) + '" data-path="' + path + '" value="' + value + '"></td></tr>';
+}
+
+window.removeCost = function (i) {
+  financeState.costs.splice(i, 1);
+  saveFinance();
+};
+
+$('btn-add-cost').onclick = () => {
+  const name = $('cost-name').value.trim();
+  const amount = parseFloat($('cost-amount').value);
+  if (!name || isNaN(amount)) return toast('Enter a cost name and amount', true);
+  financeState.costs.push({ name, monthlyGbp: amount });
+  $('cost-name').value = ''; $('cost-amount').value = '';
+  saveFinance();
+};
+
+$('btn-save-finance').onclick = () => saveFinance();
+
+async function saveFinance() {
+  // Fold edited inputs back into settings
+  document.querySelectorAll('#fin-targets input, #fin-assumptions input').forEach((inp) => {
+    const keys = inp.dataset.path.split('.');
+    let obj = financeState;
+    for (let i = 0; i < keys.length - 1; i++) obj = obj[keys[i]];
+    obj[keys[keys.length - 1]] = parseFloat(inp.value) || 0;
+  });
+  document.querySelectorAll('#fin-costs input').forEach((inp) => {
+    financeState.costs[parseInt(inp.dataset.costIdx, 10)].monthlyGbp = parseFloat(inp.value) || 0;
+  });
+  try {
+    const d = await api('/finance', { method: 'PUT', body: JSON.stringify(financeState) });
+    financeState = d.settings;
+    renderFinance(d.finance);
+    toast('Finance settings saved');
+  } catch (e) { toast(e.message, true); }
+}
+
+// ── Init ────────────────────────────────────────────────────────
+loadHub();
+</script>
+</body>
+</html>

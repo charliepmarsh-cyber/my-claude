@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { ZodError } from "zod";
+import { serveStatic } from "@hono/node-server/serve-static";
 import { authMiddleware } from "./middleware/auth.js";
 import { requestLogger } from "./middleware/request-logger.js";
 import discoverRoutes from "./routes/discover.js";
@@ -8,6 +9,7 @@ import redraftRoutes from "./routes/redraft.js";
 import statusRoutes from "./routes/status.js";
 import leadsRoutes from "./routes/leads.js";
 import exportRoutes from "./routes/export.js";
+import osRoutes from "./routes/os.js";
 
 /**
  * Create and configure the Hono app.
@@ -19,6 +21,7 @@ export function createApp(): Hono {
   // Global middleware
   app.use("*", requestLogger);
   app.use("/webhook/*", authMiddleware);
+  app.use("/api/*", authMiddleware);
 
   // Routes
   app.route("/webhook/discover", discoverRoutes);
@@ -27,9 +30,15 @@ export function createApp(): Hono {
   app.route("/webhook/status", statusRoutes);
   app.route("/webhook/leads", leadsRoutes);
   app.route("/webhook/export", exportRoutes);
+  app.route("/api/os", osRoutes);
 
   // Health check
   app.get("/health", (c) => c.json({ ok: true, service: "outreach-agent" }));
+
+  // CortexCart OS dashboard (static, unauthenticated shell — all data
+  // comes through /api/os which enforces the bearer token)
+  app.get("/", serveStatic({ path: "./public/index.html" }));
+  app.use("/*", serveStatic({ root: "./public" }));
 
   // Global error handler
   app.onError((err, c) => {
