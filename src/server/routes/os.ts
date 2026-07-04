@@ -16,9 +16,16 @@ import {
   type MarketingKind,
 } from "../../os/marketing.js";
 import { listMarketingContent, deleteMarketingContent } from "../../os/os-store.js";
-import type { Lead } from "../../types/index.js";
+import { setCrmStage, setTemperature, getTemperature, markSent, CRM_STAGES } from "../../os/crm.js";
+import { nlSearch } from "../../os/search.js";
+import importRoutes from "./import.js";
+import type { Lead, LeadStatus, LeadTemperature } from "../../types/index.js";
 
 const app = new Hono();
+
+// ── Import (Excel/CSV upload) ───────────────────────────────────
+
+app.route("/import", importRoutes);
 
 // ── Overview (hub) ──────────────────────────────────────────────
 
@@ -36,6 +43,33 @@ app.get("/overview", (c) => {
   const assets = indexCampaignAssets();
   const content = listMarketingContent();
 
+  // Score distribution (10-point buckets) for the hub chart
+  const scoreDistribution = Array.from({ length: 10 }, (_, i) => ({
+    bucket: `${i * 10}-${i * 10 + 9}`,
+    count: leads.filter((l) => {
+      const s = l.score?.finalScore;
+      return s !== undefined && s !== null && s >= i * 10 && (i === 9 ? s <= 100 : s < (i + 1) * 10);
+    }).length,
+  }));
+
+  // Top opportunities: best actionable leads by likelihood + score
+  const topOpportunities = leads
+    .filter((l) => !["won", "lost", "not_a_fit", "rejected", "closed"].includes(l.status))
+    .sort(
+      (a, b) =>
+        (b.aiAnalysis?.likelihoodToBuy ?? 0) * 2 + (b.score?.finalScore ?? 0) -
+        ((a.aiAnalysis?.likelihoodToBuy ?? 0) * 2 + (a.score?.finalScore ?? 0)),
+    )
+    .slice(0, 5)
+    .map(summarizeLead);
+
+  // Follow-up queue: everything waiting on a human touch
+  const followUpQueue = leads
+    .filter((l) => ["follow_up_due", "approved", "contacted", "proposal", "snoozed"].includes(l.status))
+    .sort((a, b) => a.updatedAt.localeCompare(b.updatedAt))
+    .slice(0, 10)
+    .map((l) => ({ ...summarizeLead(l), nextAction: l.nextAction }));
+
   return c.json({
     ok: true,
     campaign: getActiveCampaign(),
@@ -45,6 +79,10 @@ app.get("/overview", (c) => {
       byTier,
       reviewPending: byStatus["review_pending"] || 0,
       approved: byStatus["approved"] || 0,
+      scoreDistribution,
+      topOpportunities,
+      followUpQueue,
+      crmStages: CRM_STAGES.map((stage) => ({ stage, count: byStatus[stage] || 0 })),
     },
     marketing: {
       assetCount: assets.assets.length,
@@ -76,6 +114,8 @@ function summarizeLead(lead: Lead) {
     status: lead.status,
     score: lead.score?.finalScore ?? null,
     tier: lead.score?.tier ?? null,
+    likelihood: lead.aiAnalysis?.likelihoodToBuy ?? null,
+    temperature: getTemperature(lead) ?? null,
     draftCount: lead.outreachDrafts.length,
     updatedAt: lead.updatedAt,
   };
@@ -127,6 +167,73 @@ app.post("/leads/:id/review", async (c) => {
   logAudit(reviewed.id, `os_review_${parsed.data.action}`, parsed.data.notes);
 
   return c.json({ ok: true, lead: summarizeLead(reviewed), status: reviewed.status });
+});
+
+// ── Sales: CRM stage + temperature ──────────────────────────────
+
+const StageRequest = z.object({
+  stage: z.enum(["sent", "contacted", "meeting_booked", "demo", "proposal", "won", "lost"]),
+  notes: z.string().optional(),
+});
+
+app.post("/leads/:id/stage", async (c) => {
+  const lead = getLeadById(c.req.param("id"));
+  if (!lead) return c.json({ ok: false, error: "Lead not found" }, 404);
+
+  const parsed = StageRequest.safeParse(await c.req.json());
+  if (!parsed.success) return c.json({ ok: false, error: parsed.error.flatten() }, 400);
+
+  try {
+    let updated =
+      parsed.data.stage === "sent"
+        ? markSent(lead)
+        : setCrmStage(lead, parsed.data.stage as LeadStatus);
+    if (parsed.data.notes) {
+      updated = { ...updated, reviewNotes: parsed.data.notes };
+    }
+    saveLead(updated);
+    logAudit(updated.id, `os_crm_stage_${parsed.data.stage}`, parsed.data.notes);
+    return c.json({ ok: true, lead: summarizeLead(updated), status: updated.status });
+  } catch (err) {
+    return c.json({ ok: false, error: (err as Error).message }, 400);
+  }
+});
+
+const TemperatureRequest = z.object({
+  temperature: z.enum(["hot", "warm", "cold"]),
+});
+
+app.post("/leads/:id/temperature", async (c) => {
+  const lead = getLeadById(c.req.param("id"));
+  if (!lead) return c.json({ ok: false, error: "Lead not found" }, 404);
+
+  const parsed = TemperatureRequest.safeParse(await c.req.json());
+  if (!parsed.success) return c.json({ ok: false, error: parsed.error.flatten() }, 400);
+
+  const updated = setTemperature(lead, parsed.data.temperature as LeadTemperature);
+  saveLead(updated);
+  logAudit(updated.id, `os_temperature_${parsed.data.temperature}`);
+  return c.json({ ok: true, lead: summarizeLead(updated) });
+});
+
+// ── Sales: natural-language search ──────────────────────────────
+
+const SearchRequest = z.object({
+  query: z.string().min(2).max(500),
+});
+
+app.post("/search", async (c) => {
+  const parsed = SearchRequest.safeParse(await c.req.json());
+  if (!parsed.success) return c.json({ ok: false, error: parsed.error.flatten() }, 400);
+
+  const result = await nlSearch(parsed.data.query, getAllLeads());
+  return c.json({
+    ok: true,
+    interpretation: result.interpretation,
+    filter: result.filter,
+    count: result.leads.length,
+    leads: result.leads.map(summarizeLead),
+  });
 });
 
 // ── Sales: run controls ─────────────────────────────────────────

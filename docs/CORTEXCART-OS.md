@@ -22,11 +22,15 @@ Campaign banner (positioning, offer, ICP) + one card per department with its key
 The core. Backed by the full existing pipeline (Apollo / BuiltWith / job-signal discovery → LLM enrichment → deterministic ICP scoring → per-channel drafting → review queue).
 
 - **Discover leads** — runs connector discovery for a segment, then the full pipeline, as a background job.
-- **Process pipeline** — enriches `new` leads, scores `enriched`, drafts `scored` (≥30), queues `drafted` for review.
-- **Funnel** — live counts per status.
-- **Lead table** — filter by status/tier/search; click a row for the detail drawer: score explanation, all drafts (copy buttons), audit trail, and Approve / Reject / Snooze / Not-a-fit actions.
+- **Import Excel/CSV** — upload a spreadsheet of leads (flexible headers: "Company", "Email", "Notes"…); tools mentioned in notes ("uses Klaviyo, running Meta ads") are auto-detected into the tech stack so buying signals fire. Dedup by domain; optional auto-process.
+- **Process pipeline** — enriches `new` leads (incl. AI fit analysis), scores `enriched`, drafts `scored` (≥30), queues `drafted` for review.
+- **Ask (natural-language search)** — "A-tier stores running Meta ads with no attribution" → interpreted filter over the lead base.
+- **Funnel** — live counts per pipeline status, plus a CRM row (contacted → meeting → demo → proposal → won/lost).
+- **Lead table** — filter by status/tier/search; Buy % column from the AI fit analysis; click a row for the detail drawer: AI fit card (likelihood, sales angle, objections, offer), temperature (hot/warm/cold), CRM stage buttons, score explanation, all drafts (copy buttons), audit trail, and review actions.
 
-Nothing is ever auto-sent. Approval marks a lead ready for export (`/webhook/export` or CSV) — sending stays manual or via n8n.
+Nothing is ever auto-sent. Approval marks a lead ready for export (`/webhook/export` or CSV) — sending stays manual or via n8n; "Mark sent" then tracks it through the CRM funnel.
+
+See **[LEAD-INTELLIGENCE.md](LEAD-INTELLIGENCE.md)** for the full signal taxonomy, data-source strategy, and V2/V3 roadmap.
 
 ### Marketing
 - **Asset index** — lists the shipped campaign assets (hero film, cuts, stills, VO) from `CAMPAIGN_ASSETS_DIR` (default: `C:/Users/charl/Desktop/cortexcart-campaign`).
@@ -46,6 +50,11 @@ Pipeline-value model over live lead tiers: `projected trials = Σ tier count × 
 | `/api/os/leads` | GET | Lead summaries; `?status=&tier=&q=` |
 | `/api/os/leads/:id` | GET | Full lead + audit trail |
 | `/api/os/leads/:id/review` | POST | `{action: approve\|edit\|reject\|snooze\|not_a_fit, notes?}` |
+| `/api/os/leads/:id/stage` | POST | CRM move: `{stage: sent\|contacted\|meeting_booked\|demo\|proposal\|won\|lost, notes?}` |
+| `/api/os/leads/:id/temperature` | POST | `{temperature: hot\|warm\|cold}` |
+| `/api/os/search` | POST | Natural-language search: `{query}` → interpreted filter + matching leads |
+| `/api/os/import` | POST | Multipart Excel/CSV upload: `file`, `segment?`, `runPipeline?` |
+| `/api/os/import/template` | GET | Downloadable CSV template (Excel-friendly) |
 | `/api/os/run/discover` | POST | `{segment, maxLeads}` → background discovery job |
 | `/api/os/run/process` | POST | Background job: enrich → score → draft → queue |
 | `/api/os/jobs` | GET | Job history |

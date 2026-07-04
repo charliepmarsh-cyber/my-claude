@@ -43,6 +43,7 @@ export interface RawLead {
   personalizationHints?: string;
   apolloId?: string;
   tags?: string[];
+  techStack?: string[];
 }
 
 export interface DiscoveryStats {

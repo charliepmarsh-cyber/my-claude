@@ -22,8 +22,18 @@ export const LeadStatus = z.enum([
   "replied",
   "follow_up_due",
   "closed",
+  // CRM stages (post-outreach sales lifecycle)
+  "contacted",
+  "meeting_booked",
+  "demo",
+  "proposal",
+  "won",
+  "lost",
 ]);
 export type LeadStatus = z.infer<typeof LeadStatus>;
+
+export const LeadTemperature = z.enum(["hot", "warm", "cold"]);
+export type LeadTemperature = z.infer<typeof LeadTemperature>;
 
 export const OutreachChannel = z.enum(["linkedin", "x", "email"]);
 export type OutreachChannel = z.infer<typeof OutreachChannel>;
@@ -133,6 +143,19 @@ export const PainPointHypothesis = z.object({
 });
 export type PainPointHypothesis = z.infer<typeof PainPointHypothesis>;
 
+export const AiFitAnalysis = z.object({
+  likelihoodToBuy: z.number().min(0).max(100),
+  growthStage: z.string(), // e.g. "early", "scaling", "established"
+  marketingSophistication: z.enum(["low", "medium", "high"]),
+  estimatedPainPoints: z.array(z.string()).default([]),
+  bestSalesAngle: z.string(),
+  likelyObjections: z.array(z.string()).default([]),
+  recommendedOffer: z.string(),
+  reasoning: z.string(),
+  analyzedAt: z.string(),
+});
+export type AiFitAnalysis = z.infer<typeof AiFitAnalysis>;
+
 export const OutreachDraft = z.object({
   channel: OutreachChannel,
   messageType: MessageType,
@@ -155,6 +178,7 @@ export const Lead = z.object({
   contact: ContactInfo,
   signals: PublicSignals,
   score: ScoreBreakdown.optional(),
+  aiAnalysis: AiFitAnalysis.optional(),
   painPoints: z.array(PainPointHypothesis).default([]),
   outreachDrafts: z.array(OutreachDraft).default([]),
   personalizationNotes: z.string().optional(),

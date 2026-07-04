@@ -66,6 +66,7 @@ export function buildLinkedInFirstMessage(context: {
   painPointHypothesis: string;
   automationAngle: string;
   roiAngle: string;
+  salesAngle?: string;
 }): string {
   return `Write a LinkedIn first message (max 150 words) for:
 
@@ -78,7 +79,7 @@ PROSPECT:
 SIGNAL: ${context.topSignal}
 PAIN POINT: ${context.painPointHypothesis}
 AUTOMATION ANGLE: ${context.automationAngle}
-ROI ANGLE: ${context.roiAngle}
+ROI ANGLE: ${context.roiAngle}${context.salesAngle ? `\nRECOMMENDED SALES ANGLE (from AI fit analysis — prefer this as the opener): ${context.salesAngle}` : ""}
 
 Output JSON:
 {
@@ -153,6 +154,7 @@ export function buildColdEmailFirstTouch(context: {
   automationAngle: string;
   roiAngle: string;
   useCases: string[];
+  salesAngle?: string;
 }): string {
   return `Write a cold email first touch for:
 
@@ -166,7 +168,7 @@ SIGNAL: ${context.topSignal}
 PAIN POINT: ${context.painPointHypothesis}
 AUTOMATION ANGLE: ${context.automationAngle}
 ROI ANGLE: ${context.roiAngle}
-RELEVANT USE CASES: ${context.useCases.join(", ")}
+RELEVANT USE CASES: ${context.useCases.join(", ")}${context.salesAngle ? `\nRECOMMENDED SALES ANGLE (from AI fit analysis — prefer this as the opener): ${context.salesAngle}` : ""}
 
 Output JSON:
 {

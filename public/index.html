@@ -132,6 +132,24 @@
   .progress { height: 8px; background: var(--navy-3); border-radius: 999px; overflow: hidden; margin-top: 8px; }
   .progress .bar { height: 100%; background: var(--green); border-radius: 999px; }
   .muted { color: var(--muted); }
+  .dist-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-size: 11px; }
+  .dist-row .bucket { width: 46px; color: var(--muted); text-align: right; }
+  .dist-row .bar-track { flex: 1; background: var(--navy-3); border-radius: 4px; height: 14px; }
+  .dist-row .bar-fill { height: 100%; background: linear-gradient(90deg, var(--cyan), var(--green)); border-radius: 4px; min-width: 2px; }
+  .dist-row .n { width: 24px; color: var(--muted); }
+  .opp-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-bottom: 1px solid rgba(30,58,92,.5); cursor: pointer; border-radius: 6px; }
+  .opp-row:hover { background: var(--navy-3); }
+  .temp-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
+  .temp-hot { background: var(--red); }
+  .temp-warm { background: var(--amber); }
+  .temp-cold { background: #60a5fa; }
+  .fit-card { background: linear-gradient(120deg, var(--navy-3), var(--navy)); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 14px; }
+  .fit-card .likelihood { font-size: 24px; font-weight: 700; color: var(--green); }
+  .fit-card .fit-label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .6px; margin-top: 8px; }
+  .fit-card .fit-text { font-size: 13px; line-height: 1.5; }
+  .stage-btn { background: var(--navy-3); border: 1px solid var(--border); color: var(--muted); padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 12px; }
+  .stage-btn:hover { color: var(--text); border-color: var(--cyan); }
+  .stage-btn.current { color: var(--cyan); border-color: var(--cyan); font-weight: 600; }
   .spin { display: inline-block; animation: spin 1s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
 </style>
@@ -161,8 +179,20 @@
     <div class="sub" id="hub-date"></div>
     <div class="banner" id="hub-banner">Loading campaign…</div>
     <div class="cards" id="hub-cards"></div>
-    <div class="section-title">Recent jobs</div>
-    <div id="hub-jobs" class="muted" style="font-size:13px">—</div>
+    <div class="grid2">
+      <div>
+        <div class="section-title">Top opportunities <span class="muted" style="font-size:11px">score + AI likelihood</span></div>
+        <div id="hub-top" class="muted" style="font-size:13px">—</div>
+        <div class="section-title">Score distribution</div>
+        <div id="hub-dist"></div>
+      </div>
+      <div>
+        <div class="section-title">Follow-up queue</div>
+        <div id="hub-followups" class="muted" style="font-size:13px">—</div>
+        <div class="section-title">Recent jobs</div>
+        <div id="hub-jobs" class="muted" style="font-size:13px">—</div>
+      </div>
+    </div>
   </section>
 
   <!-- SALES -->
@@ -179,10 +209,24 @@
       <input type="number" id="disc-max" value="25" min="1" max="100" style="width:80px" title="Max leads">
       <button class="btn" id="btn-discover">Discover leads</button>
       <button class="btn secondary" id="btn-process">Process pipeline</button>
+      <button class="btn secondary" id="btn-import">Import Excel/CSV</button>
+      <input type="file" id="import-file" accept=".csv,.xlsx,.xls,.xlsm,.txt" style="display:none">
+      <label class="muted" style="font-size:12px" title="Enrich, score and draft imported leads automatically">
+        <input type="checkbox" id="import-run" checked> auto-process
+      </label>
+      <a href="#" id="tmpl-link" style="color:var(--cyan);font-size:12px">template</a>
       <span id="job-status" class="muted" style="font-size:12px"></span>
     </div>
 
     <div class="funnel" id="funnel"></div>
+    <div class="funnel" id="crm-funnel" title="CRM stages"></div>
+
+    <div class="row">
+      <input type="text" id="nl-q" placeholder='Ask in plain English: "A-tier stores running Meta ads with no attribution"' style="flex:1;min-width:280px">
+      <button class="btn" id="btn-nl-search">Ask</button>
+      <button class="btn secondary" id="btn-nl-clear" style="display:none">Clear search</button>
+    </div>
+    <div id="nl-interpretation" class="muted" style="font-size:12px;margin:-8px 0 12px;display:none"></div>
 
     <div class="row">
       <select id="f-status">
@@ -190,18 +234,20 @@
         <option>new</option><option>enriched</option><option>scored</option><option>drafted</option>
         <option>review_pending</option><option>approved</option><option>rejected</option>
         <option>sent</option><option>replied</option><option>not_a_fit</option><option>snoozed</option>
+        <option>contacted</option><option>meeting_booked</option><option>demo</option>
+        <option>proposal</option><option>won</option><option>lost</option><option>follow_up_due</option>
       </select>
       <select id="f-tier">
         <option value="">All tiers</option>
         <option>A</option><option>B</option><option>C</option><option>D</option>
       </select>
-      <input type="text" id="f-q" placeholder="Search company / contact / niche">
+      <input type="text" id="f-q" placeholder="Filter company / contact / niche">
       <button class="btn secondary" id="btn-refresh-leads">Refresh</button>
     </div>
 
     <table>
-      <thead><tr><th>Company</th><th>Contact</th><th>Niche</th><th>Score</th><th>Tier</th><th>Status</th><th>Drafts</th></tr></thead>
-      <tbody id="leads-body"><tr><td colspan="7" class="muted">Loading…</td></tr></tbody>
+      <thead><tr><th>Company</th><th>Contact</th><th>Niche</th><th>Score</th><th>Buy %</th><th>Tier</th><th>Status</th><th>Drafts</th></tr></thead>
+      <tbody id="leads-body"><tr><td colspan="8" class="muted">Loading…</td></tr></tbody>
     </table>
   </section>
 
@@ -347,6 +393,34 @@ async function loadHub() {
       card.onclick = () => document.querySelector('nav button[data-tab="' + card.dataset.dept + '"]').click();
     });
 
+    // Top opportunities
+    $('hub-top').innerHTML = (s.topOpportunities && s.topOpportunities.length)
+      ? s.topOpportunities.map((l) =>
+          '<div class="opp-row" onclick="goToLead(\'' + l.id + '\')">' +
+          '<span>' + tempDot(l.temperature) + '<b>' + esc(l.company) + '</b> <span class="muted" style="font-size:11px">' + esc(l.niche || '') + '</span></span>' +
+          '<span>' + (l.likelihood != null ? '<span style="color:var(--green);font-weight:600">' + l.likelihood + '%</span> ' : '') +
+          (l.tier ? '<span class="pill ' + l.tier + '">' + l.tier + '</span>' : '') + '</span></div>'
+        ).join('')
+      : 'No scored leads yet — run discovery or import a list.';
+
+    // Score distribution
+    const dist = s.scoreDistribution || [];
+    const maxCount = Math.max(1, ...dist.map((b) => b.count));
+    $('hub-dist').innerHTML = dist.map((b) =>
+      '<div class="dist-row"><span class="bucket">' + b.bucket + '</span>' +
+      '<div class="bar-track"><div class="bar-fill" style="width:' + Math.round((b.count / maxCount) * 100) + '%"></div></div>' +
+      '<span class="n">' + b.count + '</span></div>'
+    ).join('');
+
+    // Follow-up queue
+    $('hub-followups').innerHTML = (s.followUpQueue && s.followUpQueue.length)
+      ? s.followUpQueue.map((l) =>
+          '<div class="opp-row" onclick="goToLead(\'' + l.id + '\')">' +
+          '<span>' + tempDot(l.temperature) + '<b>' + esc(l.company) + '</b><div class="muted" style="font-size:11px">' + esc(l.nextAction || '') + '</div></span>' +
+          '<span class="pill status">' + esc(l.status.replace(/_/g,' ')) + '</span></div>'
+        ).join('')
+      : 'Nothing waiting on you.';
+
     $('hub-jobs').innerHTML = (d.jobs && d.jobs.length)
       ? d.jobs.map((j) => '<div>' + esc(j.type) + ' — <b>' + esc(j.status) + '</b> <span class="muted">' + esc(j.createdAt.slice(0,16).replace('T',' ')) + '</span>' + (j.error ? ' <span style="color:var(--red)">' + esc(j.error) + '</span>' : '') + '</div>').join('')
       : 'No jobs run yet.';
@@ -358,8 +432,18 @@ function hubCard(dept, label, value, color, hint) {
   return '<div class="card clickable" data-dept="' + dept + '"><div class="label">' + esc(label) + '</div><div class="value ' + color + '">' + esc(value) + '</div><div class="hint">' + esc(hint) + '</div></div>';
 }
 
+function tempDot(temp) {
+  return temp ? '<span class="temp-dot temp-' + temp + '" title="' + temp + '"></span>' : '';
+}
+
+window.goToLead = function (id) {
+  document.querySelector('nav button[data-tab="sales"]').click();
+  openLead(id);
+};
+
 // ── SALES ───────────────────────────────────────────────────────
 const FUNNEL_STAGES = ['new','enriched','scored','drafted','review_pending','approved','sent','replied'];
+const CRM_FUNNEL_STAGES = ['contacted','meeting_booked','demo','proposal','won','lost'];
 
 async function loadFunnel() {
   try {
@@ -367,7 +451,25 @@ async function loadFunnel() {
     $('funnel').innerHTML = FUNNEL_STAGES.map((st) =>
       '<div class="stage"><b>' + (d.sales.byStatus[st] || 0) + '</b><span>' + st.replace('_',' ') + '</span></div>'
     ).join('');
+    const crmTotal = CRM_FUNNEL_STAGES.reduce((n, st) => n + (d.sales.byStatus[st] || 0), 0);
+    $('crm-funnel').innerHTML = crmTotal > 0 ? CRM_FUNNEL_STAGES.map((st) =>
+      '<div class="stage"><b style="color:var(--green)">' + (d.sales.byStatus[st] || 0) + '</b><span>' + st.replace(/_/g,' ') + '</span></div>'
+    ).join('') : '';
   } catch (e) { $('funnel').innerHTML = '<span class="muted">' + esc(e.message) + '</span>'; }
+}
+
+function renderLeadRows(leads, emptyMsg) {
+  $('leads-body').innerHTML = leads.length ? leads.map((l) =>
+    '<tr class="lead-row" onclick="openLead(\'' + l.id + '\')">' +
+    '<td>' + tempDot(l.temperature) + '<b>' + esc(l.company) + '</b></td>' +
+    '<td>' + esc(l.contact || '—') + '<div class="muted" style="font-size:11px">' + esc(l.role || '') + '</div></td>' +
+    '<td>' + esc(l.niche || '—') + '</td>' +
+    '<td>' + (l.score ?? '—') + '</td>' +
+    '<td>' + (l.likelihood != null ? '<span style="color:var(--green)">' + l.likelihood + '%</span>' : '—') + '</td>' +
+    '<td>' + (l.tier ? '<span class="pill ' + l.tier + '">' + l.tier + '</span>' : '—') + '</td>' +
+    '<td><span class="pill status">' + esc(l.status.replace(/_/g,' ')) + '</span></td>' +
+    '<td>' + l.draftCount + '</td></tr>'
+  ).join('') : '<tr><td colspan="8" class="muted">' + esc(emptyMsg || 'No leads match. Run discovery or import a list.') + '</td></tr>';
 }
 
 async function loadLeads() {
@@ -377,25 +479,86 @@ async function loadLeads() {
   if ($('f-q').value) params.set('q', $('f-q').value);
   try {
     const d = await api('/leads?' + params);
-    $('leads-body').innerHTML = d.leads.length ? d.leads.map((l) =>
-      '<tr class="lead-row" onclick="openLead(\'' + l.id + '\')">' +
-      '<td><b>' + esc(l.company) + '</b></td>' +
-      '<td>' + esc(l.contact || '—') + '<div class="muted" style="font-size:11px">' + esc(l.role || '') + '</div></td>' +
-      '<td>' + esc(l.niche || '—') + '</td>' +
-      '<td>' + (l.score ?? '—') + '</td>' +
-      '<td>' + (l.tier ? '<span class="pill ' + l.tier + '">' + l.tier + '</span>' : '—') + '</td>' +
-      '<td><span class="pill status">' + esc(l.status) + '</span></td>' +
-      '<td>' + l.draftCount + '</td></tr>'
-    ).join('') : '<tr><td colspan="7" class="muted">No leads match. Run discovery to source new leads.</td></tr>';
+    renderLeadRows(d.leads);
   } catch (e) {
-    $('leads-body').innerHTML = '<tr><td colspan="7" style="color:var(--red)">' + esc(e.message) + '</td></tr>';
+    $('leads-body').innerHTML = '<tr><td colspan="8" style="color:var(--red)">' + esc(e.message) + '</td></tr>';
   }
 }
 
-$('btn-refresh-leads').onclick = () => { loadFunnel(); loadLeads(); };
+$('btn-refresh-leads').onclick = () => { clearNlSearch(); loadFunnel(); loadLeads(); };
 $('f-status').onchange = loadLeads;
 $('f-tier').onchange = loadLeads;
 $('f-q').addEventListener('keydown', (e) => { if (e.key === 'Enter') loadLeads(); });
+
+// ── Natural-language search ─────────────────────────────────────
+async function runNlSearch() {
+  const q = $('nl-q').value.trim();
+  if (q.length < 2) return;
+  const btn = $('btn-nl-search');
+  btn.disabled = true; btn.textContent = 'Searching…';
+  try {
+    const d = await api('/search', { method: 'POST', body: JSON.stringify({ query: q }) });
+    renderLeadRows(d.leads, 'No leads match that search.');
+    $('nl-interpretation').style.display = '';
+    $('nl-interpretation').textContent = '→ ' + d.interpretation + ' (' + d.count + ' result' + (d.count === 1 ? '' : 's') + ')';
+    $('btn-nl-clear').style.display = '';
+  } catch (e) { toast(e.message, true); }
+  btn.disabled = false; btn.textContent = 'Ask';
+}
+
+function clearNlSearch() {
+  $('nl-q').value = '';
+  $('nl-interpretation').style.display = 'none';
+  $('btn-nl-clear').style.display = 'none';
+}
+
+$('btn-nl-search').onclick = runNlSearch;
+$('nl-q').addEventListener('keydown', (e) => { if (e.key === 'Enter') runNlSearch(); });
+$('btn-nl-clear').onclick = () => { clearNlSearch(); loadLeads(); };
+
+// ── Excel / CSV import ──────────────────────────────────────────
+$('btn-import').onclick = () => $('import-file').click();
+
+$('import-file').onchange = async () => {
+  const file = $('import-file').files[0];
+  if (!file) return;
+  const btn = $('btn-import');
+  btn.disabled = true; btn.textContent = 'Importing…';
+  try {
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('segment', $('disc-segment').value);
+    fd.append('runPipeline', $('import-run').checked ? 'true' : 'false');
+    const token = $('token').value || localStorage.getItem('os_token') || '';
+    const headers = {};
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+    const res = await fetch('/api/os/import', { method: 'POST', body: fd, headers });
+    const d = await res.json();
+    if (!res.ok || d.ok === false) throw new Error(typeof d.error === 'string' ? d.error : JSON.stringify(d.error));
+    toast(d.message);
+    if (d.jobId) pollJobs();
+    loadFunnel(); loadLeads();
+  } catch (e) { toast(e.message, true); }
+  $('import-file').value = '';
+  btn.disabled = false; btn.textContent = 'Import Excel/CSV';
+};
+
+$('tmpl-link').onclick = async (e) => {
+  e.preventDefault();
+  try {
+    const token = $('token').value || localStorage.getItem('os_token') || '';
+    const headers = {};
+    if (token) headers['Authorization'] = 'Bearer ' + token;
+    const res = await fetch('/api/os/import/template', { headers });
+    if (!res.ok) throw new Error('Could not fetch template');
+    const blob = await res.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'cortexcart-leads-template.csv';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  } catch (err) { toast(err.message, true); }
+};
 
 $('btn-discover').onclick = async () => {
   try {
@@ -446,15 +609,62 @@ window.openLead = async function (id) {
     ).join('') || '<div class="muted">No drafts yet — run the pipeline.</div>';
 
     const canReview = ['review_pending','drafted'].includes(l.status);
+    const temp = (l.tags || []).find((t) => ['hot','warm','cold'].includes(t));
+
+    // AI fit analysis card
+    const fit = l.aiAnalysis;
+    const fitCard = fit ?
+      '<div class="fit-card">' +
+      '<div style="display:flex;justify-content:space-between;align-items:baseline">' +
+        '<span class="fit-label" style="margin-top:0">AI fit analysis</span>' +
+        '<span class="likelihood">' + fit.likelihoodToBuy + '%<span style="font-size:11px;color:var(--muted);font-weight:400"> likely to buy</span></span>' +
+      '</div>' +
+      '<div class="progress" style="margin-bottom:10px"><div class="bar" style="width:' + fit.likelihoodToBuy + '%"></div></div>' +
+      '<div class="fit-label">Best sales angle</div><div class="fit-text">' + esc(fit.bestSalesAngle) + '</div>' +
+      '<div class="fit-label">Recommended offer</div><div class="fit-text">' + esc(fit.recommendedOffer) + '</div>' +
+      (fit.estimatedPainPoints.length ? '<div class="fit-label">Estimated pain points</div><div class="fit-text">' + fit.estimatedPainPoints.map(esc).join(' · ') + '</div>' : '') +
+      (fit.likelyObjections.length ? '<div class="fit-label">Likely objections</div><div class="fit-text">' + fit.likelyObjections.map(esc).join(' · ') + '</div>' : '') +
+      '<div class="fit-label">Stage · sophistication</div><div class="fit-text">' + esc(fit.growthStage) + ' · marketing ' + esc(fit.marketingSophistication) + '</div>' +
+      '<div class="fit-label">Reasoning</div><div class="fit-text muted" style="font-size:12px">' + esc(fit.reasoning) + '</div>' +
+      '</div>' : '';
+
+    // Temperature buttons
+    const tempRow =
+      '<div class="row" style="gap:6px"><span class="muted" style="font-size:12px">Temperature:</span>' +
+      ['hot','warm','cold'].map((t) =>
+        '<button class="stage-btn' + (temp === t ? ' current' : '') + '" onclick="setTemp(\'' + l.id + '\',\'' + t + '\')">' +
+        '<span class="temp-dot temp-' + t + '"></span>' + t + '</button>'
+      ).join('') + '</div>';
+
+    // CRM stage controls
+    const CRM_FLOW = [
+      { stage: 'sent', label: 'Sent', from: ['approved','edited','follow_up_due'] },
+      { stage: 'contacted', label: 'Contacted' },
+      { stage: 'meeting_booked', label: 'Meeting' },
+      { stage: 'demo', label: 'Demo' },
+      { stage: 'proposal', label: 'Proposal' },
+      { stage: 'won', label: 'Won ✓' },
+      { stage: 'lost', label: 'Lost' },
+    ];
+    const crmEligible = ['approved','edited','sent','replied','follow_up_due','contacted','meeting_booked','demo','proposal','won','lost'].includes(l.status);
+    const stageRow = crmEligible ?
+      '<div class="section-title">CRM stage</div><div class="row" style="gap:6px">' +
+      CRM_FLOW.filter((s) => !s.from || s.from.includes(l.status) || l.status === s.stage).map((s) =>
+        '<button class="stage-btn' + (l.status === s.stage ? ' current' : '') + '" onclick="setStage(\'' + l.id + '\',\'' + s.stage + '\')">' + s.label + '</button>'
+      ).join('') + '</div>' : '';
+
     $('drawer-content').innerHTML =
-      '<h2>' + esc(l.company.name) + '</h2>' +
+      '<h2>' + tempDot(temp) + esc(l.company.name) + '</h2>' +
       '<div class="sub">' + esc(l.contact.fullName || '') + (l.contact.role ? ' · ' + esc(l.contact.role) : '') + (l.contact.email ? ' · ' + esc(l.contact.email) : '') +
       (l.company.website ? ' · <a href="' + esc(l.company.website) + '" target="_blank" style="color:var(--cyan)">site</a>' : '') + '</div>' +
       '<div class="row">' +
         (l.score ? '<span class="pill ' + l.score.tier + '">Tier ' + l.score.tier + ' · ' + l.score.finalScore + '</span>' : '') +
-        '<span class="pill status">' + esc(l.status) + '</span>' +
+        '<span class="pill status">' + esc(l.status.replace(/_/g,' ')) + '</span>' +
+        (l.company.techStack && l.company.techStack.length ? '<span class="muted" style="font-size:11px">' + l.company.techStack.slice(0,6).map(esc).join(' · ') + '</span>' : '') +
       '</div>' +
       (l.score ? '<p class="muted" style="font-size:12px;margin-bottom:14px">' + esc(l.score.explanation) + '</p>' : '') +
+      fitCard +
+      tempRow +
       (canReview ?
         '<div class="row">' +
         '<button class="btn green" onclick="reviewLead(\'' + l.id + '\',\'approve\')">Approve</button>' +
@@ -462,10 +672,28 @@ window.openLead = async function (id) {
         '<button class="btn secondary" onclick="reviewLead(\'' + l.id + '\',\'snooze\')">Snooze</button>' +
         '<button class="btn secondary" onclick="reviewLead(\'' + l.id + '\',\'not_a_fit\')">Not a fit</button>' +
         '</div>' : '') +
+      stageRow +
       '<div class="section-title">Outreach drafts</div>' + drafts +
       '<div class="section-title">Audit trail</div>' +
       '<div style="font-size:12px" class="muted">' + (d.audit || []).slice(0, 15).map((a) => a.timestamp.slice(0,16).replace('T',' ') + ' — ' + esc(a.action)).join('<br>') + '</div>';
     $('drawer').classList.add('open');
+  } catch (e) { toast(e.message, true); }
+};
+
+window.setTemp = async function (id, temperature) {
+  try {
+    await api('/leads/' + id + '/temperature', { method: 'POST', body: JSON.stringify({ temperature }) });
+    openLead(id); loadLeads();
+  } catch (e) { toast(e.message, true); }
+};
+
+window.setStage = async function (id, stage) {
+  let notes;
+  if (stage === 'lost') notes = prompt('Why lost? (logged for the 90-day revisit)') || undefined;
+  try {
+    await api('/leads/' + id + '/stage', { method: 'POST', body: JSON.stringify({ stage, notes }) });
+    toast('Moved to ' + stage.replace(/_/g,' '));
+    openLead(id); loadFunnel(); loadLeads();
   } catch (e) { toast(e.message, true); }
 };
 

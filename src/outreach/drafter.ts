@@ -43,6 +43,7 @@ export async function draftOutreach(
     automationAngle: personalization.automationAngle,
     roiAngle: personalization.roiAngle,
     useCases: personalization.useCases,
+    salesAngle: lead.aiAnalysis?.bestSalesAngle,
   };
 
   for (const channel of channels) {

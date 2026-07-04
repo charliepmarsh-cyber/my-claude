@@ -36,6 +36,14 @@ export const ICP_PROFILES: IcpProfile[] = [
       { signal: "review_volume", weight: 5, category: "fit", description: "Significant review/feedback volume indicating scale" },
       { signal: "recent_growth", weight: 7, category: "urgency", description: "Signs of rapid growth (new products, expanded shipping, funding)" },
       { signal: "subscription_model", weight: 6, category: "fit", description: "Subscription/recurring revenue model adds ops complexity" },
+      // CortexCart buying signals — the "why gap"
+      { signal: "email_marketing_stack", weight: 7, category: "fit", description: "Email marketing tooling installed (Klaviyo, Omnisend, Mailchimp) — invests in marketing" },
+      { signal: "subscription_tooling", weight: 5, category: "fit", description: "Subscription apps installed (Recharge, Bold, Loop)" },
+      { signal: "running_paid_ads", weight: 8, category: "opportunity", description: "Running paid ads (Meta/Google/TikTok pixels detected) — feels the attribution pain" },
+      { signal: "analytics_gap", weight: 9, category: "opportunity", description: "Marketing stack present but no attribution/analytics tooling — the why gap" },
+      { signal: "hiring_marketing_roles", weight: 8, category: "urgency", description: "Hiring marketers, ecommerce managers, or CRO specialists" },
+      { signal: "social_active", weight: 4, category: "urgency", description: "Active on social channels (IG/TikTok/YouTube) or founder posting" },
+      { signal: "platform_migration", weight: 5, category: "urgency", description: "Recently migrated or replatforming — rethinking their stack" },
     ],
     negativeSignals: [
       { signal: "brand_new_store", weight: -5, category: "fit", description: "Store less than 3 months old, likely too early" },
@@ -65,6 +73,9 @@ export const ICP_PROFILES: IcpProfile[] = [
       { signal: "recent_funding", weight: 7, category: "urgency", description: "Recent funding or investment" },
       { signal: "international_expansion", weight: 6, category: "urgency", description: "Expanding internationally, adding complexity" },
       { signal: "erp_integration_need", weight: 7, category: "opportunity", description: "Signs of needing better system integration" },
+      { signal: "running_paid_ads", weight: 7, category: "opportunity", description: "Running paid ads (Meta/Google/TikTok pixels detected) — feels the attribution pain" },
+      { signal: "analytics_gap", weight: 8, category: "opportunity", description: "Marketing stack present but no attribution/analytics tooling — the why gap" },
+      { signal: "hiring_marketing_roles", weight: 7, category: "urgency", description: "Hiring marketers, ecommerce managers, or CRO specialists" },
     ],
     negativeSignals: [
       { signal: "pre_revenue", weight: -6, category: "fit", description: "Pre-revenue startup, not ready for automation" },

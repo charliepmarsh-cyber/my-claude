@@ -1,1 +1,1 @@
-export { enrichLead } from "./enricher.js";
+export { enrichLead, analyzeFit } from "./enricher.js";

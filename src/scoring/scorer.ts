@@ -161,6 +161,23 @@ function matchesSignal(lead: Lead, signal: string): boolean {
     multi_channel_selling: () => s.multiChannelPresence.length >= 2,
     marketing_automation_need: () => hasClue(s, "marketing") && !hasClue(s, "automated"),
 
+    // CortexCart buying signals (tech-stack driven)
+    email_marketing_stack: () => hasTech(c, ["klaviyo", "omnisend", "mailchimp", "drip", "sendlane"]),
+    subscription_tooling: () => hasTech(c, ["recharge", "bold subscriptions", "loop subscriptions", "skio", "smartrr"]),
+    running_paid_ads: () =>
+      hasTech(c, ["meta pixel", "meta ads", "facebook pixel", "facebook ads", "google ads", "tiktok pixel", "tiktok ads", "pinterest tag", "pinterest ads", "snap pixel"]) ||
+      hasClue(s, "running ads") || hasClue(s, "paid traffic") || hasClue(s, "ad spend"),
+    analytics_gap: () =>
+      (hasTech(c, ["klaviyo", "omnisend", "mailchimp", "meta pixel", "facebook pixel", "google ads", "tiktok pixel"]) ||
+        s.multiChannelPresence.length >= 2) &&
+      !hasTech(c, ["triple whale", "northbeam", "lifetimely", "polar analytics", "daasity", "glew"]) &&
+      !hasClue(s, "attribution tool"),
+    hiring_marketing_roles: () => s.hiringSignals.some(h => /market|growth|cro|conversion|ecommerce manager|performance|paid (social|media|search)|ppc|media buyer/i.test(h)),
+    social_active: () =>
+      s.multiChannelPresence.some(m => /instagram|tiktok|youtube|pinterest/i.test(m)) ||
+      hasClue(s, "founder posting") || hasClue(s, "active on social"),
+    platform_migration: () => hasClue(s, "migrat") || hasClue(s, "replatform") || hasClue(s, "switched from"),
+
     // Enterprise
     multiple_business_units: () => hasClue(s, "business unit") || hasClue(s, "division"),
     legacy_systems: () => hasClue(s, "legacy") || hasClue(s, "outdated"),
@@ -215,6 +232,11 @@ function collectRedFlags(lead: Lead): string[] {
 
 function platformIs(c: CompanyProfile, name: string): boolean {
   return c.platform?.toLowerCase().includes(name) || c.platformIndicators.some(p => p.toLowerCase().includes(name));
+}
+
+function hasTech(c: CompanyProfile, names: string[]): boolean {
+  const stack = c.techStack.map(t => t.toLowerCase());
+  return names.some(n => stack.some(t => t.includes(n)));
 }
 
 function hasClue(s: PublicSignals, keyword: string): boolean {

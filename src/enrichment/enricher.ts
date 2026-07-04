@@ -1,4 +1,4 @@
-import type { Lead, PublicSignals, PainPointHypothesis } from "../types/index.js";
+import type { Lead, PublicSignals, PainPointHypothesis, AiFitAnalysis } from "../types/index.js";
 import { callLlmJson, LlmAuthError } from "../lib/llm.js";
 import { log } from "../lib/logger.js";
 import {
@@ -7,6 +7,10 @@ import {
   PAIN_POINT_SYSTEM_PROMPT,
   buildPainPointPrompt,
 } from "../prompts/enrichment.js";
+import {
+  FIT_ANALYSIS_SYSTEM_PROMPT,
+  buildFitAnalysisPrompt,
+} from "../prompts/fit-analysis.js";
 
 interface EnrichmentResult {
   companyDescription: string | null;
@@ -99,12 +103,16 @@ export async function enrichLead(lead: Lead): Promise<Lead> {
       relevantUseCases: pp.relevantUseCases || [],
     }));
 
+    // Step 3: CortexCart fit analysis — likelihood to buy, sales angle, objections
+    const aiAnalysis = await analyzeFit({ ...lead, company, signals, painPoints });
+
     const now = new Date().toISOString();
     return {
       ...lead,
       company,
       signals,
       painPoints,
+      aiAnalysis,
       status: "enriched",
       enrichedAt: now,
       updatedAt: now,
@@ -136,4 +144,62 @@ function mergeArrays(existing: string[], incoming: string[] | undefined): string
   if (!incoming) return existing;
   const set = new Set([...existing, ...incoming]);
   return [...set];
+}
+
+interface FitResult {
+  likelihoodToBuy: number;
+  growthStage: string;
+  marketingSophistication: "low" | "medium" | "high";
+  estimatedPainPoints: string[];
+  bestSalesAngle: string;
+  likelyObjections: string[];
+  recommendedOffer: string;
+  reasoning: string;
+}
+
+/**
+ * Run the CortexCart fit analysis on an enriched lead.
+ * Non-fatal: returns undefined if the call fails (auth errors still bubble).
+ */
+export async function analyzeFit(lead: Lead): Promise<AiFitAnalysis | undefined> {
+  const s = lead.signals;
+  const signalsSummary = [
+    ...s.hiringSignals.map((x) => `hiring: ${x}`),
+    ...s.growthIndicators.map((x) => `growth: ${x}`),
+    ...s.multiChannelPresence.map((x) => `channel: ${x}`),
+    ...s.fragmentedTooling.map((x) => `tooling: ${x}`),
+    ...s.painPointClues.map((x) => `pain: ${x}`),
+  ].join("\n");
+
+  try {
+    const fit = await callLlmJson<FitResult>({
+      system: FIT_ANALYSIS_SYSTEM_PROMPT,
+      prompt: buildFitAnalysisPrompt({
+        companyName: lead.company.name,
+        website: lead.company.website,
+        platform: lead.company.platform,
+        niche: lead.company.niche || lead.company.industry,
+        sizeEstimate: lead.company.sizeEstimate,
+        techStack: lead.company.techStack,
+        signalsSummary,
+        painPoints: lead.painPoints.map((p) => p.hypothesis),
+      }),
+    });
+
+    return {
+      likelihoodToBuy: Math.max(0, Math.min(100, Math.round(fit.likelihoodToBuy))),
+      growthStage: fit.growthStage,
+      marketingSophistication: fit.marketingSophistication,
+      estimatedPainPoints: fit.estimatedPainPoints || [],
+      bestSalesAngle: fit.bestSalesAngle,
+      likelyObjections: fit.likelyObjections || [],
+      recommendedOffer: fit.recommendedOffer,
+      reasoning: fit.reasoning,
+      analyzedAt: new Date().toISOString(),
+    };
+  } catch (err) {
+    if (err instanceof LlmAuthError) throw err;
+    log.warn(`Fit analysis failed for ${lead.company.name}: ${(err as Error).message}`);
+    return undefined;
+  }
 }

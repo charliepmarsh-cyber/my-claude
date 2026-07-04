@@ -67,6 +67,16 @@ export function generateMockResponse(system: string, prompt: string): string {
     return JSON.stringify(mockMarketingContent(prompt));
   }
 
+  // CortexCart fit analysis
+  if (prompt.includes("CortexCart fit analysis")) {
+    return JSON.stringify(mockFitAnalysis(ctx, prompt));
+  }
+
+  // Natural-language lead search → structured filter
+  if (system.includes("lead search query translator")) {
+    return JSON.stringify(mockSearchFilter(prompt));
+  }
+
   // Enrichment prompt
   if (prompt.includes("Extract the following as JSON") && prompt.includes("companyDescription")) {
     return JSON.stringify(mockEnrichment(ctx));
@@ -276,6 +286,67 @@ function mockFollowUp(ctx: MockContext) {
     personalizationSnippet: "Relevant automation example for their industry",
     signalUsed: "industry relevance",
   };
+}
+
+// ── CortexCart fit analysis ─────────────────────────────────────
+
+function mockFitAnalysis(ctx: MockContext, prompt: string) {
+  const stackMatch = prompt.match(/TECH STACK:\s*(.+?)(?:\n|$)/);
+  const stack = (stackMatch?.[1] || "").toLowerCase();
+  const hasEmailTool = /klaviyo|omnisend|mailchimp/.test(stack);
+  const hasAds = /pixel|google ads|tiktok/.test(stack);
+  const hasAttribution = /triple whale|northbeam|lifetimely|polar/.test(stack);
+
+  const likelihood = hasAds && !hasAttribution ? 74 : hasEmailTool ? 55 : 35;
+
+  return {
+    likelihoodToBuy: likelihood,
+    growthStage: hasEmailTool && hasAds ? "scaling" : "early",
+    marketingSophistication: hasAds ? "medium" : "low",
+    estimatedPainPoints: [
+      hasAds && !hasAttribution
+        ? "Spending on ads without attribution — can't tell which channel drives profit"
+        : "Store performance data scattered across multiple tools",
+      "Daily reporting requires manually checking several dashboards",
+    ],
+    bestSalesAngle:
+      hasAds && !hasAttribution
+        ? `${ctx.companyName} is paying for traffic but flying blind on why sales move — lead with the attribution why-gap`
+        : `Ask how ${ctx.companyName} currently pulls their daily numbers together — lead with the tab-dance pain`,
+    likelyObjections: [
+      "Already checking numbers in Shopify admin — why add a tool?",
+      "Another dashboard to learn / set up time",
+      hasAttribution ? "Already paying for an attribution tool" : "Is a free beta product reliable?",
+    ],
+    recommendedOffer: "Free beta access + free AI homepage audit as the icebreaker",
+    reasoning: `Mock analysis: ${hasAds ? "ad pixels detected without attribution tooling — strong why-gap fit" : "limited ad-spend signals, so mid/low likelihood"}. Set ANTHROPIC_API_KEY for a real analysis.`,
+  };
+}
+
+// ── NL search filter ────────────────────────────────────────────
+
+function mockSearchFilter(prompt: string) {
+  // Deterministic keyword fallback so search works without an API key
+  const qMatch = prompt.match(/QUERY:\s*([\s\S]+?)(?:\n\nJSON|$)/);
+  const q = (qMatch?.[1] || prompt).toLowerCase();
+
+  const filter: Record<string, unknown> = {};
+  if (/tier a|a-tier|best|top/.test(q)) filter.tier = "A";
+  else if (/tier b/.test(q)) filter.tier = "B";
+  if (/meta ads|facebook ads|running ads|paid (ads|traffic)|ad spend/.test(q)) filter.techIncludes = ["pixel", "google ads", "tiktok"];
+  if (/klaviyo/.test(q)) filter.techIncludes = [...((filter.techIncludes as string[]) || []), "klaviyo"];
+  if (/no attribution|attribution gap|poor attribution|why gap/.test(q)) filter.techExcludes = ["triple whale", "northbeam", "lifetimely", "polar"];
+  if (/hiring/.test(q)) filter.hiring = true;
+  if (/review|pending/.test(q)) filter.status = "review_pending";
+  if (/approved/.test(q)) filter.status = "approved";
+  if (/won/.test(q)) filter.status = "won";
+  if (/hot/.test(q)) filter.temperature = "hot";
+  const scoreMatch = q.match(/score (?:over|above|>) ?(\d+)/);
+  if (scoreMatch) filter.minScore = parseInt(scoreMatch[1], 10);
+  const keywords = q.match(/"([^"]+)"/g)?.map((k) => k.replace(/"/g, ""));
+  if (keywords?.length) filter.keywords = keywords;
+
+  return { filter, interpretation: `Keyword-matched filter (mock mode): ${JSON.stringify(filter)}` };
 }
 
 // ── Marketing content (CortexCart OS) ───────────────────────────
