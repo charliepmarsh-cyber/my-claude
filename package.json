@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Compliant lead discovery, qualification, and outreach drafting agent",
   "engines": {
-    "node": ">=20"
+    "node": "22.x"
   },
   "type": "module",
   "main": "dist/cli.js",
