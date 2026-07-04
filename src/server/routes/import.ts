@@ -128,12 +128,13 @@ function parseSpreadsheet(filename: string, buffer: Buffer): Record<string, unkn
  */
 app.post("/", async (c) => {
   const body = await c.req.parseBody();
-  const file = body["file"];
+  const file = body["file"] as { name?: string; size?: number; arrayBuffer?: () => Promise<ArrayBuffer> } | string | undefined;
 
-  if (!(file instanceof File)) {
+  // Duck-type instead of `instanceof File` — the File global is absent on older Node runtimes
+  if (!file || typeof file === "string" || typeof file.arrayBuffer !== "function") {
     return c.json({ ok: false, error: "No file uploaded — send multipart/form-data with a 'file' field" }, 400);
   }
-  if (file.size > 10 * 1024 * 1024) {
+  if ((file.size ?? 0) > 10 * 1024 * 1024) {
     return c.json({ ok: false, error: "File too large (max 10 MB)" }, 400);
   }
 
@@ -141,9 +142,10 @@ app.post("/", async (c) => {
   const defaultSegment: LeadSegment = segmentField === "ecommerce" || segmentField === "enterprise" ? segmentField : "shopify";
   const runPipelineAfter = body["runPipeline"] === "true";
 
+  const filename = file.name || "upload.csv";
   let rows: Record<string, unknown>[];
   try {
-    rows = parseSpreadsheet(file.name, Buffer.from(await file.arrayBuffer()));
+    rows = parseSpreadsheet(filename, Buffer.from(await file.arrayBuffer!()));
   } catch (err) {
     return c.json({ ok: false, error: (err as Error).message }, 400);
   }
@@ -169,12 +171,12 @@ app.post("/", async (c) => {
     );
   }
 
-  log.info(`Importing ${rawLeads.length} leads from ${file.name} (${skipped} rows skipped)`);
+  log.info(`Importing ${rawLeads.length} leads from ${filename} (${skipped} rows skipped)`);
   const outcome = ingestRawLeads(rawLeads, { runPipelineAfter });
 
   return c.json({
     ok: true,
-    file: file.name,
+    file: filename,
     rows: rows.length,
     imported: outcome.imported,
     duplicates: outcome.duplicates,

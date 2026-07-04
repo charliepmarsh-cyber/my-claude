@@ -2,6 +2,9 @@
   "name": "outreach-agent",
   "version": "0.1.0",
   "description": "Compliant lead discovery, qualification, and outreach drafting agent",
+  "engines": {
+    "node": ">=20"
+  },
   "type": "module",
   "main": "dist/cli.js",
   "bin": {
