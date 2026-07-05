@@ -6,6 +6,12 @@
       "runtimeExecutable": "npx",
       "runtimeArgs": ["tsx", "src/cli.ts", "serve", "--port", "3847"],
       "port": 3847
+    },
+    {
+      "name": "cpm-website",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "website", "-l", "4173"],
+      "port": 4173
     }
   ]
 }
