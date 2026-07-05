@@ -1,0 +1,94 @@
+{
+  "name": "CPM Website — Audit Request Intake",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "cpm-audit-request",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "https://charliepmarsh-cyber.github.io"
+        }
+      },
+      "name": "Form Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body || {};\nconst str = (v) => (v == null ? '' : String(v)).trim();\n\nconst name = str(body.name);\nconst email = str(body.email);\nconst company = str(body.company);\nconst stage = str(body.stage);\nconst interest = str(body.interest);\nconst message = str(body.message);\nconst honeypot = str(body.company_website); // hidden field — humans leave it empty\n\nconst errors = [];\nif (!name) errors.push('name is required');\nif (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) errors.push('a valid email is required');\nif (!message) errors.push('message is required');\n\nreturn [{\n  json: {\n    valid: errors.length === 0 && !honeypot,\n    spam: honeypot !== '',\n    errors,\n    name, email, company, stage, interest, message,\n    receivedAt: $now.toISO()\n  }\n}];"
+      },
+      "name": "Validate & Normalise",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json.valid}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "Is Valid?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "sendTo": "charliepmarsh@gmail.com",
+        "subject": "=New Growth Systems Audit request — {{$json.name}}{{$json.company ? ' (' + $json.company + ')' : ''}}",
+        "emailType": "text",
+        "message": "=New audit request from the CPM Growth Systems website\n\nName: {{$json.name}}\nEmail: {{$json.email}}\nCompany/store: {{$json.company || '—'}}\nBusiness stage: {{$json.stage || '—'}}\nInterested in: {{$json.interest || '—'}}\nReceived: {{$json.receivedAt}}\n\nWhere growth is leaking:\n{{$json.message}}\n\n—\nReply directly to {{$json.email}} within one working day.",
+        "options": {}
+      },
+      "name": "Email Charlie",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [900, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\"success\": true}"
+      },
+      "name": "Respond OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1120, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({success: false, errors: $json.errors}) }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "name": "Respond Invalid",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [900, 420]
+    }
+  ],
+  "connections": {
+    "Form Webhook": { "main": [[{ "node": "Validate & Normalise", "type": "main", "index": 0 }]] },
+    "Validate & Normalise": { "main": [[{ "node": "Is Valid?", "type": "main", "index": 0 }]] },
+    "Is Valid?": {
+      "main": [
+        [{ "node": "Email Charlie", "type": "main", "index": 0 }],
+        [{ "node": "Respond Invalid", "type": "main", "index": 0 }]
+      ]
+    },
+    "Email Charlie": { "main": [[{ "node": "Respond OK", "type": "main", "index": 0 }]] }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

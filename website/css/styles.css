@@ -696,6 +696,14 @@ section.tight { padding: 64px 0; }
 .field select option { background: var(--navy); }
 .field textarea { min-height: 130px; resize: vertical; }
 
+/* Honeypot — visually removed, still submitted; bots fill it, humans never see it */
+.hp-field {
+  position: absolute;
+  left: -9999px;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .form-note {
   margin-top: 18px;
   padding: 14px 18px;
