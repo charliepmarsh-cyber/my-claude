@@ -31,9 +31,16 @@ Drop the `website/` folder on Netlify, Vercel, Cloudflare Pages or GitHub Pages 
 
 ## Before going live — wire these up
 
-1. **Form backend** — `js/main.js` currently shows a success note and points to email.
-   Swap for a Formspree endpoint, HubSpot form, or an n8n webhook (recommended: n8n →
-   HubSpot contact + Slack/email alert).
+1. **Form backend (n8n — built, needs activating)** — the workflow is at
+   `../n8n-templates/website-audit-request.json`. To go live:
+   1. Import it into your n8n instance, connect a Gmail credential on the
+      "Email Charlie" node, and activate it.
+   2. Copy the production webhook URL (ends in `/webhook/cpm-audit-request`).
+   3. Paste it into `FORM_WEBHOOK_URL` at the top of the contact-form block in
+      `js/main.js` and push — until then the form shows a "not wired yet" note.
+   The workflow validates required fields, drops honeypot spam, emails Charlie,
+   and returns JSON the form understands. CORS is locked to the GitHub Pages
+   origin — update `allowedOrigins` on the Webhook node when the domain changes.
 2. **Call booking** — replace the placeholder box on `contact.html` with a Calendly or
    HubSpot Meetings embed.
 3. **Domain + analytics** — point DNS, add Plausible/GA4 snippet before `</body>`.
