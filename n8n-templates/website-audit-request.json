@@ -7,7 +7,7 @@
         "path": "cpm-audit-request",
         "responseMode": "responseNode",
         "options": {
-          "allowedOrigins": "https://charliepmarsh-cyber.github.io"
+          "allowedOrigins": "https://cpmgrowthsystems.co.uk"
         }
       },
       "name": "Form Webhook",
