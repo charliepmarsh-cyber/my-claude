@@ -152,18 +152,27 @@ section.tight { padding: 64px 0; }
   gap: 10px;
   white-space: nowrap;
 }
-.logo-mark {
-  width: 30px; height: 30px;
-  border-radius: 8px;
-  background: var(--gradient-accent);
-  display: grid;
-  place-items: center;
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: #04070f;
+.logo-icon {
+  width: 34px; height: 34px;
+  color: #fff;
   flex-shrink: 0;
 }
-.logo span.sys { color: var(--dim); font-weight: 500; }
+.logo-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  line-height: 1;
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.logo-text small {
+  font-size: 0.5rem;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--blue-bright);
+}
 
 .nav-links {
   display: flex;
