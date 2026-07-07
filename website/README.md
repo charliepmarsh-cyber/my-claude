@@ -39,11 +39,13 @@ Drop the `website/` folder on Netlify, Vercel, Cloudflare Pages or GitHub Pages 
    3. Paste it into `FORM_WEBHOOK_URL` at the top of the contact-form block in
       `js/main.js` and push — until then the form shows a "not wired yet" note.
    The workflow validates required fields, drops honeypot spam, emails Charlie,
-   and returns JSON the form understands. CORS is locked to the GitHub Pages
-   origin — update `allowedOrigins` on the Webhook node when the domain changes.
+   and returns JSON the form understands. CORS is locked to
+   https://cpmgrowthsystems.co.uk — update `allowedOrigins` on the Webhook
+   node if the domain ever changes.
 2. **Call booking** — replace the placeholder box on `contact.html` with a Calendly or
    HubSpot Meetings embed.
-3. **Domain + analytics** — point DNS, add Plausible/GA4 snippet before `</body>`.
+3. **Analytics** — add Plausible/GA4 snippet before `</body>`. (Domain done:
+   live at https://cpmgrowthsystems.co.uk via Porkbun DNS → GitHub Pages.)
 4. **Proof content** — drop Loom embeds and real screenshots into the marked
    placeholder boxes on `proof.html`; swap reserved testimonial cards as quotes land.
 5. **Business email** — replace the Gmail contact address with a domain address when ready.
