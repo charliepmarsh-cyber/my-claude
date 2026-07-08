@@ -13,7 +13,10 @@
       "name": "Form Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [240, 300]
+      "position": [
+        240,
+        300
+      ]
     },
     {
       "parameters": {
@@ -22,7 +25,10 @@
       "name": "Validate & Normalise",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [460, 300]
+      "position": [
+        460,
+        300
+      ]
     },
     {
       "parameters": {
@@ -38,7 +44,10 @@
       "name": "Is Valid?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
-      "position": [680, 300]
+      "position": [
+        680,
+        300
+      ]
     },
     {
       "parameters": {
@@ -51,7 +60,10 @@
       "name": "Email Charlie",
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.1,
-      "position": [900, 200]
+      "position": [
+        1120,
+        200
+      ]
     },
     {
       "parameters": {
@@ -61,7 +73,10 @@
       "name": "Respond OK",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [1120, 200]
+      "position": [
+        900,
+        200
+      ]
     },
     {
       "parameters": {
@@ -74,19 +89,64 @@
       "name": "Respond Invalid",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [900, 420]
+      "position": [
+        900,
+        420
+      ]
     }
   ],
   "connections": {
-    "Form Webhook": { "main": [[{ "node": "Validate & Normalise", "type": "main", "index": 0 }]] },
-    "Validate & Normalise": { "main": [[{ "node": "Is Valid?", "type": "main", "index": 0 }]] },
-    "Is Valid?": {
+    "Form Webhook": {
       "main": [
-        [{ "node": "Email Charlie", "type": "main", "index": 0 }],
-        [{ "node": "Respond Invalid", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Validate & Normalise",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
-    "Email Charlie": { "main": [[{ "node": "Respond OK", "type": "main", "index": 0 }]] }
+    "Validate & Normalise": {
+      "main": [
+        [
+          {
+            "node": "Is Valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Valid?": {
+      "main": [
+        [
+          {
+            "node": "Respond OK",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Invalid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond OK": {
+      "main": [
+        [
+          {
+            "node": "Email Charlie",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
   "settings": {
     "executionOrder": "v1"

@@ -47,7 +47,7 @@
   // Contact form → n8n webhook (workflow: n8n-templates/website-audit-request.json).
   // Set FORM_WEBHOOK_URL to the production webhook URL once the workflow is live,
   // e.g. "https://your-n8n-host/webhook/cpm-audit-request".
-  const FORM_WEBHOOK_URL = "";
+  const FORM_WEBHOOK_URL = "https://charliepmars.app.n8n.cloud/webhook/cpm-audit-request";
 
   const form = document.querySelector("#contact-form");
   if (form) {
