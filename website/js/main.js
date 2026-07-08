@@ -84,6 +84,7 @@
           body: JSON.stringify(payload),
         });
         if (res.ok) {
+          if (typeof gtag === "function") gtag("event", "generate_lead", { method: "audit_form" });
           showNote("Thanks " + firstName + " — your audit request is in. Charlie will reply within one working day.");
           form.reset();
         } else {
@@ -98,6 +99,13 @@
       }
     });
   }
+
+  // Calendly booking → GA4 conversion event
+  window.addEventListener("message", (e) => {
+    if (e.origin === "https://calendly.com" && e.data && e.data.event === "calendly.event_scheduled") {
+      if (typeof gtag === "function") gtag("event", "book_appointment", { method: "calendly" });
+    }
+  });
 
   // Footer year
   document.querySelectorAll("[data-year]").forEach((el) => {
