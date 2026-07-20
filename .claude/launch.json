@@ -12,6 +12,12 @@
       "runtimeExecutable": "npx",
       "runtimeArgs": ["serve", "website", "-l", "4173"],
       "port": 4173
+    },
+    {
+      "name": "lead-os",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "lead-os", "run", "dev"],
+      "port": 3000
     }
   ]
 }

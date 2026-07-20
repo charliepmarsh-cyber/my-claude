@@ -1,0 +1,117 @@
+@import "tailwindcss";
+
+/* ============================================================
+   CPM Lead Intelligence OS — design tokens
+   Premium dark command-centre: navy / electric blue / cyan
+   ============================================================ */
+
+@theme {
+  --color-bg: #060a14;
+  --color-surface: #0a101f;
+  --color-raised: #0e1628;
+  --color-overlay: #131d33;
+  --color-line: rgba(148, 163, 198, 0.14);
+  --color-line-strong: rgba(148, 163, 198, 0.26);
+  --color-text: #e8eef8;
+  --color-muted: #9aa7bd;
+  --color-dim: #66738c;
+  --color-accent: #2563eb;
+  --color-accent-bright: #3b82f6;
+  --color-accent-soft: rgba(37, 99, 235, 0.14);
+  --color-cyan: #22d3ee;
+  --color-success: #34d399;
+  --color-success-soft: rgba(52, 211, 153, 0.12);
+  --color-warn: #fbbf24;
+  --color-warn-soft: rgba(251, 191, 36, 0.12);
+  --color-danger: #f87171;
+  --color-danger-soft: rgba(248, 113, 113, 0.12);
+  --color-coral: #ff6b5e;
+
+  --font-sans: var(--font-body), "Segoe UI", system-ui, sans-serif;
+  --font-display: var(--font-heading), var(--font-body), "Segoe UI", sans-serif;
+
+  --radius-card: 14px;
+  --radius-control: 9px;
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 28px rgba(2, 6, 18, 0.45);
+  --shadow-pop: 0 12px 40px rgba(2, 6, 18, 0.65);
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Subtle background wash for the command-centre feel */
+.app-bg {
+  background:
+    radial-gradient(1100px 500px at 85% -10%, rgba(37, 99, 235, 0.09), transparent 60%),
+    radial-gradient(900px 420px at -10% 110%, rgba(34, 211, 238, 0.05), transparent 55%),
+    var(--color-bg);
+}
+
+::selection {
+  background: rgba(37, 99, 235, 0.45);
+}
+
+*:focus-visible {
+  outline: 2px solid var(--color-accent-bright);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Thin scrollbars that match the theme */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 198, 0.28) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 198, 0.28);
+  border-radius: 8px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-toast-in {
+  animation: toast-in 160ms ease-out;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.animate-fade-in {
+  animation: fade-in 140ms ease-out;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
