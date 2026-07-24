@@ -44,6 +44,7 @@ import {
   markResearchedAction,
 } from "@/server/actions/research";
 import { clearScoreOverrideAction, overrideScoreAction, recomputeScoresAction } from "@/server/actions/leads";
+import { ApolloPanel } from "./apollo-panel";
 
 export function IntelligencePanels({
   lead,
@@ -52,6 +53,7 @@ export function IntelligencePanels({
   research,
   signals,
   pains,
+  apolloConfigured,
 }: {
   lead: Lead;
   company: Company | null;
@@ -59,6 +61,7 @@ export function IntelligencePanels({
   research: ResearchItem[];
   signals: BuyingSignal[];
   pains: PainHypothesis[];
+  apolloConfigured: boolean;
 }) {
   return (
     <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
@@ -67,6 +70,7 @@ export function IntelligencePanels({
         <CompanyPanel leadId={lead.id} company={company} />
       </div>
       <div className="space-y-5">
+        <ApolloPanel leadId={lead.id} configured={apolloConfigured} doNotContact={lead.doNotContact} />
         <PainsPanel leadId={lead.id} pains={pains} />
         <SignalsPanel leadId={lead.id} signals={signals} />
         <ResearchPanel leadId={lead.id} research={research} />

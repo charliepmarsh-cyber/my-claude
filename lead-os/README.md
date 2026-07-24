@@ -105,7 +105,7 @@ Railway/Fly/Render with a volume are ideal. **Vercel note:** serverless filesyst
 
 - Single user by design (schema has a users table; multi-user needs authz scoping + row ownership).
 - LinkedIn/email are manual copy-paste by design in v1 — no auto-send anywhere.
-- Enrichment is manual/paste-based; no third-party enrichment APIs wired yet (the research model is ready for them).
+- Enrichment: Apollo.io person/company lookup is wired (Intelligence tab, `APOLLO_API_KEY`); everything else is manual/paste-based. Apollo lookups are click-only (1 credit each), request no personal emails/phones, and every returned fact is reviewed before it touches a record.
 - Browser e2e (Playwright) not included; the Vitest workflow suite drives the real action layer instead.
 - Kanban drag-and-drop uses native HTML5 DnD (no touch-drag on mobile — use the stage select on the lead page).
 - AI reply analysis and polish depend on an Anthropic key; without it the rules engine covers everything at slightly lower nuance.
@@ -113,7 +113,7 @@ Railway/Fly/Render with a volume are ideal. **Vercel note:** serverless filesyst
 ## Phase-two roadmap (prioritised)
 
 1. Postgres/Supabase driver swap + hosted deploy for multi-device access.
-2. Enrichment connectors (Companies House, website tech-detection API) feeding the existing research model.
+2. Further enrichment connectors (Apollo prospect *search*/discovery, Companies House, website tech-detection) feeding the existing research model — Apollo person-match enrichment already shipped.
 3. Outcome-weighted recommendations: let recorded wins tune question/template ordering (explicit, reviewable changes only).
 4. Message A/B compare view + per-variant stats (data model already tracks versions).
 5. Meeting scheduling integration (Calendly webhook → conversation entries).

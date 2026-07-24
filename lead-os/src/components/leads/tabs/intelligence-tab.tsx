@@ -1,4 +1,5 @@
 import type { LeadDetail } from "@/server/lead-detail";
+import { apolloConfigured } from "@/lib/enrichment/apollo";
 import { IntelligencePanels } from "./intelligence-panels";
 
 export function IntelligenceTab({ detail }: { detail: LeadDetail }) {
@@ -10,6 +11,7 @@ export function IntelligenceTab({ detail }: { detail: LeadDetail }) {
       research={detail.research}
       signals={detail.signals}
       pains={detail.pains}
+      apolloConfigured={apolloConfigured()}
     />
   );
 }

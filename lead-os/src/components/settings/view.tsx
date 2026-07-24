@@ -15,10 +15,12 @@ export function SettingsView({
   settings,
   suppressions,
   ai,
+  apollo,
 }: {
   settings: SettingsShape;
   suppressions: SuppressionRecord[];
   ai: { mode: "anthropic" | "mock"; model: string; totalCostUsd: number; recentRuns: AiRun[] };
+  apollo: { configured: boolean };
 }) {
   const { toast } = useToast();
   const router = useRouter();
@@ -195,6 +197,23 @@ export function SettingsView({
               is the foundation, AI is a labelled enhancement.
             </p>
           ) : null}
+          <div className="mt-4 border-t border-line pt-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <Badge tone={apollo.configured ? "green" : "grey"}>
+                {apollo.configured ? "Apollo.io connected" : "Apollo.io not configured"}
+              </Badge>
+              <span className="text-[12.5px] text-muted">
+                Prospect enrichment on each lead&apos;s Intelligence tab. Lookups run only on click and cost one Apollo
+                credit each.
+              </span>
+            </div>
+            {!apollo.configured ? (
+              <p className="mt-2 text-[12.5px] leading-relaxed text-muted">
+                Add <code className="rounded bg-raised px-1 py-0.5 text-[11.5px]">APOLLO_API_KEY</code> to{" "}
+                <code className="rounded bg-raised px-1 py-0.5 text-[11.5px]">.env.local</code> and restart to enable it.
+              </p>
+            ) : null}
+          </div>
           {ai.recentRuns.length > 0 ? (
             <>
               <SectionTitle className="mt-4 mb-2">Recent AI runs</SectionTitle>

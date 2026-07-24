@@ -4,6 +4,7 @@ import { suppressionRecords, aiRuns } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
 import { getSettings } from "@/lib/settings";
 import { aiMode, aiModel } from "@/lib/ai";
+import { apolloConfigured } from "@/lib/enrichment/apollo";
 import { PageHeader } from "@/components/ui";
 import { SettingsView } from "@/components/settings/view";
 
@@ -31,6 +32,7 @@ export default async function SettingsPage() {
         settings={settings}
         suppressions={suppressions}
         ai={{ mode: aiMode(), model: aiModel(), totalCostUsd: totalAiCost, recentRuns: recentAiRuns }}
+        apollo={{ configured: apolloConfigured() }}
       />
     </div>
   );
